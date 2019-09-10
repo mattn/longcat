@@ -45,10 +45,6 @@ func main() {
 
 	rect := image.Rect(0, 0, img1.Bounds().Dx(), img1.Bounds().Dy()+img2.Bounds().Dy()*ncat+img3.Bounds().Dy())
 	canvas := image.NewRGBA(rect)
-	//fmt.Println(rect)
-	///draw.Draw(canvas, rect, img1, image.Point{0, 0}, draw.Over)
-	//draw.Draw(canvas, rect, img2, image.Point{0, img1.Bounds().Dy()}, draw.Over)
-	//draw.Draw(canvas, rect, img3, image.Point{0, img1.Bounds().Dy() + img2.Bounds().Dy()*ncat}, draw.Over)
 	rect = image.Rect(0, 0, img1.Bounds().Dx(), img1.Bounds().Dy())
 	draw.Draw(canvas, rect, img1, image.Pt(0, 0), draw.Over)
 	for i := 0; i < ncat; i++ {
