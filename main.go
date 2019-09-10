@@ -31,7 +31,11 @@ func loadImage(fs http.FileSystem, n string) (image.Image, error) {
 
 func main() {
 	var ncat int
+	var ncolumns int
+	var rinterval float64
 	flag.IntVar(&ncat, "n", 1, "numcat")
+	flag.IntVar(&ncolumns, "l", 1, "number of columns")
+	flag.Float64Var(&rinterval, "i", 1.0, "rate of intervals")
 	flag.Parse()
 
 	fs, err := fs.New()
@@ -43,16 +47,19 @@ func main() {
 	img2, _ := loadImage(fs, "/data02.png")
 	img3, _ := loadImage(fs, "/data03.png")
 
-	rect := image.Rect(0, 0, img1.Bounds().Dx(), img1.Bounds().Dy()+img2.Bounds().Dy()*ncat+img3.Bounds().Dy())
+	rect := image.Rect(0, 0, img1.Bounds().Dx()*ncolumns, img1.Bounds().Dy()+img2.Bounds().Dy()*ncat+img3.Bounds().Dy())
 	canvas := image.NewRGBA(rect)
-	rect = image.Rect(0, 0, img1.Bounds().Dx(), img1.Bounds().Dy())
-	draw.Draw(canvas, rect, img1, image.Pt(0, 0), draw.Over)
-	for i := 0; i < ncat; i++ {
-		rect = image.Rect(0, img1.Bounds().Dy()+img2.Bounds().Dy()*i, img1.Bounds().Dx(), img1.Bounds().Dy()+img2.Bounds().Dy()*(i+1))
-		draw.Draw(canvas, rect, img2, image.Pt(0, 0), draw.Over)
+	for col := 0; col < ncolumns; col++ {
+		x := int(float64(img1.Bounds().Dx() * col) * rinterval)
+		rect = image.Rect(x, 0, x+img1.Bounds().Dx(), img1.Bounds().Dy())
+		draw.Draw(canvas, rect, img1, image.Pt(0, 0), draw.Over)
+		for i := 0; i < ncat; i++ {
+			rect = image.Rect(x, img1.Bounds().Dy()+img2.Bounds().Dy()*i, x+img1.Bounds().Dx(), img1.Bounds().Dy()+img2.Bounds().Dy()*(i+1))
+			draw.Draw(canvas, rect, img2, image.Pt(0, 0), draw.Over)
+		}
+		rect = image.Rect(x, img1.Bounds().Dy()+img2.Bounds().Dy()*ncat, x+img1.Bounds().Dx(), img1.Bounds().Dy()+img2.Bounds().Dy()*ncat+img3.Bounds().Dy())
+		draw.Draw(canvas, rect, img3, image.Pt(0, 0), draw.Over)
 	}
-	rect = image.Rect(0, img1.Bounds().Dy()+img2.Bounds().Dy()*ncat, img1.Bounds().Dx(), img1.Bounds().Dy()+img2.Bounds().Dy()*ncat+img3.Bounds().Dy())
-	draw.Draw(canvas, rect, img3, image.Pt(0, 0), draw.Over)
 
 	var buf bytes.Buffer
 	err = sixel.NewEncoder(&buf).Encode(canvas)
