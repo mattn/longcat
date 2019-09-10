@@ -86,7 +86,7 @@ func main() {
 	}
 
 	var output image.Image = canvas
-	if clipV {
+	if flipV {
 		output = imaging.FlipV(output)
 	}
 
