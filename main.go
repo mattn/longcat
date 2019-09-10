@@ -40,7 +40,7 @@ func main() {
 	flag.IntVar(&ncolumns, "l", 1, "number of columns")
 	flag.Float64Var(&rinterval, "i", 1.0, "rate of intervals")
 	flag.BoolVar(&reverseH, "r", false, "reverse holizontal")
-	flag.BoolVar(&reverseV, "R", false, "reverse holizontal")
+	flag.BoolVar(&reverseV, "R", false, "reverse vertical")
 	flag.Parse()
 
 	fs, err := fs.New()
