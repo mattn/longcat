@@ -14,6 +14,7 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/disintegration/imaging"
 	"github.com/mattn/go-sixel"
 	_ "github.com/mattn/longcat/statik"
 	"github.com/rakyll/statik/fs"
@@ -32,9 +33,12 @@ func main() {
 	var nlong int
 	var ncolumns int
 	var rinterval float64
+	var reverse bool
+
 	flag.IntVar(&nlong, "n", 1, "how long cat")
 	flag.IntVar(&ncolumns, "l", 1, "number of columns")
 	flag.Float64Var(&rinterval, "i", 1.0, "rate of intervals")
+	flag.BoolVar(&reverse, "r", false, "reverse")
 	flag.Parse()
 
 	fs, err := fs.New()
@@ -46,10 +50,16 @@ func main() {
 	img2, _ := loadImage(fs, "/data02.png")
 	img3, _ := loadImage(fs, "/data03.png")
 
+	if reverse {
+		img1 = imaging.FlipH(img1)
+		img2 = imaging.FlipH(img2)
+		img3 = imaging.FlipH(img3)
+	}
+
 	rect := image.Rect(0, 0, img1.Bounds().Dx()*ncolumns, img1.Bounds().Dy()+img2.Bounds().Dy()*nlong+img3.Bounds().Dy())
 	canvas := image.NewRGBA(rect)
 	for col := 0; col < ncolumns; col++ {
-		x := int(float64(img1.Bounds().Dx() * col) * rinterval)
+		x := int(float64(img1.Bounds().Dx()*col) * rinterval)
 		rect = image.Rect(x, 0, x+img1.Bounds().Dx(), img1.Bounds().Dy())
 		draw.Draw(canvas, rect, img1, image.Pt(0, 0), draw.Over)
 		for i := 0; i < nlong; i++ {
