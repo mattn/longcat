@@ -43,14 +43,15 @@ func main() {
 	var nlong int
 	var ncolumns int
 	var rinterval float64
-	var reverseH bool
-	var reverseV bool
+	var flipH bool
+	var flipV bool
 	var filename string
 
 	flag.IntVar(&nlong, "n", 1, "how long cat")
 	flag.IntVar(&ncolumns, "l", 1, "number of columns")
 	flag.Float64Var(&rinterval, "i", 1.0, "rate of intervals")
-	flag.BoolVar(&reverseH, "r", false, "reverse holizontal")
+	flag.BoolVar(&flipH, "r", false, "flip holizontal")
+	flag.BoolVar(&flipV, "r", false, "flip vertical")
 	flag.StringVar(&filename, "o", "", "output image file")
 	flag.Parse()
 
@@ -63,7 +64,7 @@ func main() {
 	img2, _ := loadImage(fs, "/data02.png")
 	img3, _ := loadImage(fs, "/data03.png")
 
-	if reverseH {
+	if flipH {
 		img1 = imaging.FlipH(img1)
 		img2 = imaging.FlipH(img2)
 		img3 = imaging.FlipH(img3)
@@ -75,17 +76,17 @@ func main() {
 	for col := 0; col < ncolumns; col++ {
 		x := int(float64(img1.Bounds().Dx()*col) * rinterval)
 		rect = image.Rect(x, 0, x+img1.Bounds().Dx(), img1.Bounds().Dy())
-		draw.Draw(canvas, rect, img1, image.Pt(0, 0), draw.Over)
+		draw.Draw(canvas, rect, img1, image.ZP, draw.Over)
 		for i := 0; i < nlong; i++ {
 			rect = image.Rect(x, img1.Bounds().Dy()+img2.Bounds().Dy()*i, x+img1.Bounds().Dx(), img1.Bounds().Dy()+img2.Bounds().Dy()*(i+1))
-			draw.Draw(canvas, rect, img2, image.Pt(0, 0), draw.Over)
+			draw.Draw(canvas, rect, img2, image.ZP, draw.Over)
 		}
 		rect = image.Rect(x, img1.Bounds().Dy()+img2.Bounds().Dy()*nlong, x+img1.Bounds().Dx(), img1.Bounds().Dy()+img2.Bounds().Dy()*nlong+img3.Bounds().Dy())
-		draw.Draw(canvas, rect, img3, image.Pt(0, 0), draw.Over)
+		draw.Draw(canvas, rect, img3, image.ZP, draw.Over)
 	}
 
 	var output image.Image = canvas
-	if reverseV {
+	if clipV {
 		output = imaging.FlipV(output)
 	}
 
