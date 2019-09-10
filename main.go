@@ -51,6 +51,7 @@ func main() {
 	flag.IntVar(&ncolumns, "l", 1, "number of columns")
 	flag.Float64Var(&rinterval, "i", 1.0, "rate of intervals")
 	flag.BoolVar(&reverseH, "r", false, "reverse holizontal")
+	flag.BoolVar(&reverseV, "rv", false, "reverse vertical")
 	flag.StringVar(&filename, "o", "", "output image file")
 	flag.Parse()
 
