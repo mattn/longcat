@@ -33,12 +33,14 @@ func main() {
 	var nlong int
 	var ncolumns int
 	var rinterval float64
-	var reverse bool
+	var reverseH bool
+	var reverseV bool
 
 	flag.IntVar(&nlong, "n", 1, "how long cat")
 	flag.IntVar(&ncolumns, "l", 1, "number of columns")
 	flag.Float64Var(&rinterval, "i", 1.0, "rate of intervals")
-	flag.BoolVar(&reverse, "r", false, "reverse")
+	flag.BoolVar(&reverseH, "r", false, "reverse holizontal")
+	flag.BoolVar(&reverseV, "R", false, "reverse holizontal")
 	flag.Parse()
 
 	fs, err := fs.New()
@@ -50,7 +52,7 @@ func main() {
 	img2, _ := loadImage(fs, "/data02.png")
 	img3, _ := loadImage(fs, "/data03.png")
 
-	if reverse {
+	if reverseH {
 		img1 = imaging.FlipH(img1)
 		img2 = imaging.FlipH(img2)
 		img3 = imaging.FlipH(img3)
@@ -58,6 +60,7 @@ func main() {
 
 	rect := image.Rect(0, 0, img1.Bounds().Dx()*ncolumns, img1.Bounds().Dy()+img2.Bounds().Dy()*nlong+img3.Bounds().Dy())
 	canvas := image.NewRGBA(rect)
+
 	for col := 0; col < ncolumns; col++ {
 		x := int(float64(img1.Bounds().Dx()*col) * rinterval)
 		rect = image.Rect(x, 0, x+img1.Bounds().Dx(), img1.Bounds().Dy())
@@ -70,8 +73,13 @@ func main() {
 		draw.Draw(canvas, rect, img3, image.Pt(0, 0), draw.Over)
 	}
 
+	var output image.Image = canvas
+	if reverseV {
+		output = imaging.FlipV(output)
+	}
+
 	var buf bytes.Buffer
-	err = sixel.NewEncoder(&buf).Encode(canvas)
+	err = sixel.NewEncoder(&buf).Encode(output)
 	if err != nil {
 		log.Fatal(err)
 	}
