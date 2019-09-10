@@ -6,6 +6,7 @@ package main
 import (
 	"bytes"
 	"flag"
+	"io/ioutil"
 
 	"image"
 	"image/draw"
@@ -29,18 +30,28 @@ func loadImage(fs http.FileSystem, n string) (image.Image, error) {
 	return png.Decode(f)
 }
 
+func saveImage(filename string, img image.Image) error {
+	var buf bytes.Buffer
+	err := png.Encode(&buf, img)
+	if err != nil {
+		return err
+	}
+	return ioutil.WriteFile(filename, buf.Bytes(), 0644)
+}
+
 func main() {
 	var nlong int
 	var ncolumns int
 	var rinterval float64
 	var reverseH bool
 	var reverseV bool
+	var filename string
 
 	flag.IntVar(&nlong, "n", 1, "how long cat")
 	flag.IntVar(&ncolumns, "l", 1, "number of columns")
 	flag.Float64Var(&rinterval, "i", 1.0, "rate of intervals")
 	flag.BoolVar(&reverseH, "r", false, "reverse holizontal")
-	flag.BoolVar(&reverseV, "R", false, "reverse vertical")
+	flag.StringVar(&filename, "o", "", "output image file")
 	flag.Parse()
 
 	fs, err := fs.New()
@@ -76,6 +87,14 @@ func main() {
 	var output image.Image = canvas
 	if reverseV {
 		output = imaging.FlipV(output)
+	}
+
+	if filename != "" {
+		err = saveImage(filename, output)
+		if err != nil {
+			log.Fatal(err)
+		}
+		return
 	}
 
 	var buf bytes.Buffer
