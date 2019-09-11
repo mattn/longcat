@@ -70,7 +70,8 @@ func main() {
 		img3 = imaging.FlipH(img3)
 	}
 
-	rect := image.Rect(0, 0, img1.Bounds().Dx()*ncolumns, img1.Bounds().Dy()+img2.Bounds().Dy()*nlong+img3.Bounds().Dy())
+	width := int(float64(img1.Bounds().Dx()*(ncolumns-1))*rinterval) + img1.Bounds().Dx()
+	rect := image.Rect(0, 0, width, img1.Bounds().Dy()+img2.Bounds().Dy()*nlong+img3.Bounds().Dy())
 	canvas := image.NewRGBA(rect)
 
 	for col := 0; col < ncolumns; col++ {
