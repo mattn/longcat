@@ -75,7 +75,8 @@ func main() {
 	}
 
 	width := int(float64(img1.Bounds().Dx()*(ncolumns-1))*rinterval) + img1.Bounds().Dx()
-	rect := image.Rect(0, 0, width, img1.Bounds().Dy()+img2.Bounds().Dy()*nlong+img3.Bounds().Dy())
+	height := img1.Bounds().Dy() + img2.Bounds().Dy()*nlong + img3.Bounds().Dy()
+	rect := image.Rect(0, 0, width, height)
 	canvas := image.NewRGBA(rect)
 
 	for col := 0; col < ncolumns; col++ {
@@ -97,6 +98,8 @@ func main() {
 	if isHorizontal {
 		output = imaging.Rotate90(output)
 	}
+
+	output = imaging.Resize(output, width/3, height/3, imaging.Lanczos)
 
 	if filename != "" {
 		err = saveImage(filename, output)
