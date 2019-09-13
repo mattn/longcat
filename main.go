@@ -14,9 +14,11 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 
 	"github.com/disintegration/imaging"
 	"github.com/mattn/go-sixel"
+	"github.com/mattn/longcat/iterm"
 	_ "github.com/mattn/longcat/statik"
 	"github.com/rakyll/statik/fs"
 )
@@ -100,8 +102,13 @@ func main() {
 	}
 
 	var buf bytes.Buffer
-	err = sixel.NewEncoder(&buf).Encode(output)
-	if err != nil {
+	var enc interface{ Encode(image.Image) error }
+	if strings.HasPrefix(os.Getenv("TERM_PROGRAM"), "iTerm") {
+		enc = iterm.NewEncoder(&buf)
+	} else {
+		enc = sixel.NewEncoder(&buf)
+	}
+	if err := enc.Encode(output); err != nil {
 		log.Fatal(err)
 	}
 	os.Stdout.Write(buf.Bytes())
