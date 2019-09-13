@@ -47,6 +47,7 @@ func main() {
 	var rinterval float64
 	var flipH bool
 	var flipV bool
+	var isHorizontal bool
 	var filename string
 
 	flag.IntVar(&nlong, "n", 1, "how long cat")
@@ -54,6 +55,7 @@ func main() {
 	flag.Float64Var(&rinterval, "i", 1.0, "rate of intervals")
 	flag.BoolVar(&flipH, "r", false, "flip holizontal")
 	flag.BoolVar(&flipV, "R", false, "flip vertical")
+	flag.BoolVar(&isHorizontal, "H", false, "holizontal-mode")
 	flag.StringVar(&filename, "o", "", "output image file")
 	flag.Parse()
 
@@ -91,6 +93,9 @@ func main() {
 	var output image.Image = canvas
 	if flipV {
 		output = imaging.FlipV(output)
+	}
+	if isHorizontal {
+		output = imaging.Rotate90(output)
 	}
 
 	if filename != "" {
