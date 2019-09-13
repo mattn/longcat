@@ -95,11 +95,12 @@ func main() {
 	if flipV {
 		output = imaging.FlipV(output)
 	}
+
+	output = imaging.Resize(output, width/3, height/3, imaging.Lanczos)
+
 	if isHorizontal {
 		output = imaging.Rotate90(output)
 	}
-
-	output = imaging.Resize(output, width/3, height/3, imaging.Lanczos)
 
 	if filename != "" {
 		err = saveImage(filename, output)
