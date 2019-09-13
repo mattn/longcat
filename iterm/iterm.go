@@ -34,13 +34,13 @@ func (e *Encoder) Encode(img image.Image) error {
 		return err
 	}
 
-	fmt.Print("\033]1337;")
-	fmt.Printf("File=inline=1")
-	fmt.Printf(";width=%dpx", width)
-	fmt.Printf(";height=%dpx", height)
-	fmt.Print(":")
-	fmt.Printf("%s", base64.StdEncoding.EncodeToString(buf.Bytes()))
-	fmt.Print("\a\n")
+	fmt.Fprint(e.w, "\033]1337;")
+	fmt.Fprintf(e.w, "File=inline=1")
+	fmt.Fprintf(e.w, ";width=%dpx", width)
+	fmt.Fprintf(e.w, ";height=%dpx", height)
+	fmt.Fprint(e.w, ":")
+	fmt.Fprintf(e.w, "%s", base64.StdEncoding.EncodeToString(buf.Bytes()))
+	fmt.Fprint(e.w, "\a\n")
 
 	return nil
 }
