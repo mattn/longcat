@@ -14,6 +14,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/disintegration/imaging"
@@ -23,6 +24,13 @@ import (
 	"github.com/rakyll/statik/fs"
 )
 
+// Theme of longcat
+type Theme struct {
+	Head image.Image
+	Body image.Image
+	Tail image.Image
+}
+
 func loadImage(fs http.FileSystem, n string) (image.Image, error) {
 	f, err := fs.Open(n)
 	if err != nil {
@@ -30,6 +38,47 @@ func loadImage(fs http.FileSystem, n string) (image.Image, error) {
 	}
 	defer f.Close()
 	return png.Decode(f)
+}
+
+func loadImageGlob(dir string, glob string) (image.Image, error) {
+	pattern := filepath.Join(dir, glob)
+	matches, err := filepath.Glob(pattern)
+	if err != nil {
+		log.Fatal(err)
+	}
+	if len(matches) == 0 {
+		log.Fatal(os.ErrNotExist, ": ", pattern)
+	}
+
+	data, err := ioutil.ReadFile(matches[0])
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	img, err := png.Decode(bytes.NewReader(data))
+	if err != nil {
+		log.Fatal(err)
+	}
+	return img, nil
+}
+
+func loadTheme(dir string) (Theme, error) {
+	theme := Theme{}
+	if dir == "" {
+		fs, err := fs.New()
+		if err != nil {
+			return theme, err
+		}
+
+		theme.Head, _ = loadImage(fs, "/data01.png")
+		theme.Body, _ = loadImage(fs, "/data02.png")
+		theme.Tail, _ = loadImage(fs, "/data03.png")
+	} else {
+		theme.Head, _ = loadImageGlob(dir, "*1.png")
+		theme.Body, _ = loadImageGlob(dir, "*2.png")
+		theme.Tail, _ = loadImageGlob(dir, "*3.png")
+	}
+	return theme, nil
 }
 
 func saveImage(filename string, img image.Image) error {
@@ -49,6 +98,7 @@ func main() {
 	var flipV bool
 	var isHorizontal bool
 	var filename string
+	var imageDir string
 
 	flag.IntVar(&nlong, "n", 1, "how long cat")
 	flag.IntVar(&ncolumns, "l", 1, "number of columns")
@@ -57,16 +107,16 @@ func main() {
 	flag.BoolVar(&flipV, "R", false, "flip vertical")
 	flag.BoolVar(&isHorizontal, "H", false, "holizontal-mode")
 	flag.StringVar(&filename, "o", "", "output image file")
+	flag.StringVar(&imageDir, "d", "", "directory of images(dir/*{1,2,3}.png)")
 	flag.Parse()
 
-	fs, err := fs.New()
+	theme, err := loadTheme(imageDir)
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	img1, _ := loadImage(fs, "/data01.png")
-	img2, _ := loadImage(fs, "/data02.png")
-	img3, _ := loadImage(fs, "/data03.png")
+	img1 := theme.Head
+	img2 := theme.Body
+	img3 := theme.Tail
 
 	if flipH {
 		img1 = imaging.FlipH(img1)
