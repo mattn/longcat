@@ -6,6 +6,7 @@ package main
 import (
 	"bytes"
 	"flag"
+	"fmt"
 	"io/ioutil"
 
 	"image"
@@ -34,7 +35,7 @@ type Theme struct {
 func loadImage(fs http.FileSystem, n string) (image.Image, error) {
 	f, err := fs.Open(n)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal(fmt.Errorf("theme file does not open: %s", n))
 	}
 	defer f.Close()
 	return png.Decode(f)
@@ -47,7 +48,7 @@ func loadImageGlob(dir string, glob string) (image.Image, error) {
 		log.Fatal(err)
 	}
 	if len(matches) == 0 {
-		log.Fatal(os.ErrNotExist, ": ", pattern)
+		log.Fatal(fmt.Errorf("file does not exist: %s", pattern))
 	}
 
 	data, err := ioutil.ReadFile(matches[0])
@@ -62,23 +63,27 @@ func loadImageGlob(dir string, glob string) (image.Image, error) {
 	return img, nil
 }
 
-func loadTheme(dir string) (Theme, error) {
-	theme := Theme{}
-	if dir == "" {
-		fs, err := fs.New()
-		if err != nil {
-			return theme, err
-		}
-
-		theme.Head, _ = loadImage(fs, "/data01.png")
-		theme.Body, _ = loadImage(fs, "/data02.png")
-		theme.Tail, _ = loadImage(fs, "/data03.png")
-	} else {
-		theme.Head, _ = loadImageGlob(dir, "*1.png")
-		theme.Body, _ = loadImageGlob(dir, "*2.png")
-		theme.Tail, _ = loadImageGlob(dir, "*3.png")
+func (t *Theme) loadTheme(themeName string) error {
+	fs, err := fs.New()
+	if err != nil {
+		return err
 	}
-	return theme, nil
+
+	imgPath := func(s string) string {
+		return filepath.Join("/themes", themeName, s)
+	}
+
+	t.Head, _ = loadImage(fs, imgPath("data01.png"))
+	t.Body, _ = loadImage(fs, imgPath("data02.png"))
+	t.Tail, _ = loadImage(fs, imgPath("data03.png"))
+	return nil
+}
+
+func (t *Theme) loadThemeFromDir(dir string) error {
+	t.Head, _ = loadImageGlob(dir, "*1.png")
+	t.Body, _ = loadImageGlob(dir, "*2.png")
+	t.Tail, _ = loadImageGlob(dir, "*3.png")
+	return nil
 }
 
 func saveImage(filename string, img image.Image) error {
@@ -99,6 +104,7 @@ func main() {
 	var isHorizontal bool
 	var filename string
 	var imageDir string
+	var themeName string
 
 	flag.IntVar(&nlong, "n", 1, "how long cat")
 	flag.IntVar(&ncolumns, "l", 1, "number of columns")
@@ -108,11 +114,20 @@ func main() {
 	flag.BoolVar(&isHorizontal, "H", false, "holizontal-mode")
 	flag.StringVar(&filename, "o", "", "output image file")
 	flag.StringVar(&imageDir, "d", "", "directory of images(dir/*{1,2,3}.png)")
+	flag.StringVar(&themeName, "t", "longcat", "name of theme")
 	flag.Parse()
 
-	theme, err := loadTheme(imageDir)
-	if err != nil {
-		log.Fatal(err)
+	theme := Theme{}
+	if imageDir == "" {
+		err := theme.loadTheme(themeName)
+		if err != nil {
+			log.Fatal(err)
+		}
+	} else {
+		err := theme.loadThemeFromDir(imageDir)
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
 	img1 := theme.Head
 	img2 := theme.Body
@@ -153,7 +168,7 @@ func main() {
 	}
 
 	if filename != "" {
-		err = saveImage(filename, output)
+		err := saveImage(filename, output)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -161,7 +176,9 @@ func main() {
 	}
 
 	var buf bytes.Buffer
-	var enc interface{ Encode(image.Image) error }
+	var enc interface {
+		Encode(image.Image) error
+	}
 	if strings.HasPrefix(os.Getenv("TERM_PROGRAM"), "iTerm") {
 		enc = iterm.NewEncoder(&buf)
 	} else {
