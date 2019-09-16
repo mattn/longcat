@@ -19,6 +19,7 @@ import (
 	"github.com/disintegration/imaging"
 	"github.com/mattn/go-sixel"
 	"github.com/mattn/longcat/iterm"
+	"github.com/mattn/longcat/pixterm"
 	_ "github.com/mattn/longcat/statik"
 	"github.com/rakyll/statik/fs"
 )
@@ -49,6 +50,7 @@ func main() {
 	var flipV bool
 	var isHorizontal bool
 	var filename string
+	var isPixterm bool
 
 	flag.IntVar(&nlong, "n", 1, "how long cat")
 	flag.IntVar(&ncolumns, "l", 1, "number of columns")
@@ -57,6 +59,7 @@ func main() {
 	flag.BoolVar(&flipV, "R", false, "flip vertical")
 	flag.BoolVar(&isHorizontal, "H", false, "holizontal-mode")
 	flag.StringVar(&filename, "o", "", "output image file")
+	flag.BoolVar(&isPixterm, "pixterm", false, "pixterm mode")
 	flag.Parse()
 
 	fs, err := fs.New()
@@ -112,10 +115,14 @@ func main() {
 
 	var buf bytes.Buffer
 	var enc interface{ Encode(image.Image) error }
-	if strings.HasPrefix(os.Getenv("TERM_PROGRAM"), "iTerm") {
-		enc = iterm.NewEncoder(&buf)
+	if isPixterm {
+		enc = pixterm.NewEncoder(&buf)
 	} else {
-		enc = sixel.NewEncoder(&buf)
+		if strings.HasPrefix(os.Getenv("TERM_PROGRAM"), "iTerm") {
+			enc = iterm.NewEncoder(&buf)
+		} else {
+			enc = sixel.NewEncoder(&buf)
+		}
 	}
 	if err := enc.Encode(output); err != nil {
 		log.Fatal(err)
