@@ -45,22 +45,18 @@ func loadImageGlob(dir string, glob string) (image.Image, error) {
 	pattern := filepath.Join(dir, glob)
 	matches, err := filepath.Glob(pattern)
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 	if len(matches) == 0 {
-		log.Fatal(fmt.Errorf("file does not exist: %s", pattern))
+		return nil, fmt.Errorf("file does not exist: %s", pattern)
 	}
 
 	data, err := ioutil.ReadFile(matches[0])
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 
-	img, err := png.Decode(bytes.NewReader(data))
-	if err != nil {
-		log.Fatal(err)
-	}
-	return img, nil
+	return png.Decode(bytes.NewReader(data))
 }
 
 func (t *Theme) loadTheme(themeName string) error {
@@ -80,9 +76,22 @@ func (t *Theme) loadTheme(themeName string) error {
 }
 
 func (t *Theme) loadThemeFromDir(dir string) error {
-	t.Head, _ = loadImageGlob(dir, "*1.png")
-	t.Body, _ = loadImageGlob(dir, "*2.png")
-	t.Tail, _ = loadImageGlob(dir, "*3.png")
+	resources := []struct {
+		img  *image.Image
+		glob string
+	}{
+		{&t.Head, "*1.png"},
+		{&t.Body, "*2.png"},
+		{&t.Tail, "*3.png"},
+	}
+
+	for _, v := range resources {
+		img, err := loadImageGlob(dir, v.glob)
+		if err != nil {
+			return err
+		}
+		*v.img = img
+	}
 	return nil
 }
 
