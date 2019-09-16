@@ -35,7 +35,7 @@ type Theme struct {
 func loadImage(fs http.FileSystem, n string) (image.Image, error) {
 	f, err := fs.Open(n)
 	if err != nil {
-		log.Fatal(fmt.Errorf("theme file does not open: %s", n))
+		return nil, fmt.Errorf("theme file does not open: %s", n)
 	}
 	defer f.Close()
 	return png.Decode(f)
@@ -69,9 +69,19 @@ func (t *Theme) loadTheme(themeName string) error {
 		return filepath.Join("/themes", themeName, s)
 	}
 
-	t.Head, _ = loadImage(fs, imgPath("data01.png"))
-	t.Body, _ = loadImage(fs, imgPath("data02.png"))
-	t.Tail, _ = loadImage(fs, imgPath("data03.png"))
+	t.Head, err = loadImage(fs, imgPath("data01.png"))
+	if err != nil {
+		return err
+	}
+	t.Body, err = loadImage(fs, imgPath("data02.png"))
+	if err != nil {
+		return err
+	}
+	t.Tail, err = loadImage(fs, imgPath("data03.png"))
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
