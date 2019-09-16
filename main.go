@@ -86,22 +86,21 @@ func (t *Theme) loadTheme(themeName string) error {
 }
 
 func (t *Theme) loadThemeFromDir(dir string) error {
-	resources := []struct {
-		img  *image.Image
-		glob string
-	}{
-		{&t.Head, "*1.png"},
-		{&t.Body, "*2.png"},
-		{&t.Tail, "*3.png"},
+	var err error
+
+	t.Head, err = loadImageGlob(dir, "*1.png")
+	if err != nil {
+		return err
+	}
+	t.Body, err = loadImageGlob(dir, "*2.png")
+	if err != nil {
+		return err
+	}
+	t.Tail, err = loadImageGlob(dir, "*3.png")
+	if err != nil {
+		return err
 	}
 
-	for _, v := range resources {
-		img, err := loadImageGlob(dir, v.glob)
-		if err != nil {
-			return err
-		}
-		*v.img = img
-	}
 	return nil
 }
 
