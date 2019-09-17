@@ -41,7 +41,7 @@ func (e *Encoder) Encode(img image.Image) error {
 	if err != nil {
 		return err
 	}
-	pix, err := ansimage.NewScaledFromReader(&buf, height/3, width/3, mc, sm, dm)
+	pix, err := ansimage.NewScaledFromReader(&buf, height/4, width/4, mc, sm, dm)
 	if err != nil {
 		return err
 	}
