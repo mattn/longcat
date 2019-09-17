@@ -60,6 +60,24 @@ func loadImageGlob(dir string, glob string) (image.Image, error) {
 }
 
 func (t *Theme) loadTheme(themeName string) error {
+	contains := func(ss []string, target string) bool {
+		for _, s := range ss {
+			if s == target {
+				return true
+			}
+		}
+		return false
+	}
+
+	// The theme exists?
+	themeNames, err := getThemeNames()
+	if err != nil {
+		return err
+	}
+	if !contains(themeNames, themeName) {
+		return fmt.Errorf("theme does not exist: %s", themeName)
+	}
+
 	fs, err := fs.New()
 	if err != nil {
 		return err
@@ -111,6 +129,32 @@ func saveImage(filename string, img image.Image) error {
 		return err
 	}
 	return ioutil.WriteFile(filename, buf.Bytes(), 0644)
+}
+
+func getThemeNames() ([]string, error) {
+	fs, err := fs.New()
+	if err != nil {
+		return nil, err
+	}
+
+	f, err := fs.Open("/themes")
+	if err != nil {
+		return nil, err
+	}
+	defer f.Close()
+
+	// List "/themes/*" directory in statik
+	infos, err := f.Readdir(-1)
+	if err != nil {
+		return nil, err
+	}
+
+	names := make([]string, len(infos))
+	for i, v := range infos {
+		names[i] = v.Name()
+	}
+
+	return names, nil
 }
 
 func main() {
