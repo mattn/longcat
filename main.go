@@ -157,6 +157,18 @@ func getThemeNames() ([]string, error) {
 	return names, nil
 }
 
+func printThemeNames() error {
+	names, err := getThemeNames()
+	if err != nil {
+		return err
+	}
+
+	for _, v := range names {
+		fmt.Println(v)
+	}
+	return nil
+}
+
 func main() {
 	var nlong int
 	var ncolumns int
@@ -167,6 +179,7 @@ func main() {
 	var filename string
 	var imageDir string
 	var themeName string
+	var listsThemes bool
 
 	flag.IntVar(&nlong, "n", 1, "how long cat")
 	flag.IntVar(&ncolumns, "l", 1, "number of columns")
@@ -177,7 +190,16 @@ func main() {
 	flag.StringVar(&filename, "o", "", "output image file")
 	flag.StringVar(&imageDir, "d", "", "directory of images(dir/*{1,2,3}.png)")
 	flag.StringVar(&themeName, "t", "longcat", "name of theme")
+	flag.BoolVar(&listsThemes, "themes", false, "list themes")
+
 	flag.Parse()
+
+	if listsThemes {
+		if err := printThemeNames(); err != nil {
+			log.Fatal(err)
+		}
+		return
+	}
 
 	theme := Theme{}
 	if imageDir == "" {
