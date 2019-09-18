@@ -61,6 +61,24 @@ func loadImageGlob(dir string, glob string) (image.Image, error) {
 }
 
 func (t *Theme) loadTheme(themeName string) error {
+	contains := func(ss []string, target string) bool {
+		for _, s := range ss {
+			if s == target {
+				return true
+			}
+		}
+		return false
+	}
+
+	// The theme exists?
+	themeNames, err := getThemeNames()
+	if err != nil {
+		return err
+	}
+	if !contains(themeNames, themeName) {
+		return fmt.Errorf("theme does not exist: %s", themeName)
+	}
+
 	fs, err := fs.New()
 	if err != nil {
 		return err
@@ -114,6 +132,44 @@ func saveImage(filename string, img image.Image) error {
 	return ioutil.WriteFile(filename, buf.Bytes(), 0644)
 }
 
+func getThemeNames() ([]string, error) {
+	fs, err := fs.New()
+	if err != nil {
+		return nil, err
+	}
+
+	f, err := fs.Open("/themes")
+	if err != nil {
+		return nil, err
+	}
+	defer f.Close()
+
+	// List "/themes/*" directory in statik
+	infos, err := f.Readdir(-1)
+	if err != nil {
+		return nil, err
+	}
+
+	names := make([]string, len(infos))
+	for i, v := range infos {
+		names[i] = v.Name()
+	}
+
+	return names, nil
+}
+
+func printThemeNames() error {
+	names, err := getThemeNames()
+	if err != nil {
+		return err
+	}
+
+	for _, v := range names {
+		fmt.Println(v)
+	}
+	return nil
+}
+
 func main() {
 	var nlong int
 	var ncolumns int
@@ -125,6 +181,7 @@ func main() {
 	var imageDir string
 	var themeName string
 	var isPixterm bool
+	var listsThemes bool
 
 	flag.IntVar(&nlong, "n", 1, "how long cat")
 	flag.IntVar(&ncolumns, "l", 1, "number of columns")
@@ -136,7 +193,16 @@ func main() {
 	flag.StringVar(&imageDir, "d", "", "directory of images(dir/*{1,2,3}.png)")
 	flag.StringVar(&themeName, "t", "longcat", "name of theme")
 	flag.BoolVar(&isPixterm, "pixterm", false, "pixterm mode")
+	flag.BoolVar(&listsThemes, "themes", false, "list themes")
+
 	flag.Parse()
+
+	if listsThemes {
+		if err := printThemeNames(); err != nil {
+			log.Fatal(err)
+		}
+		return
+	}
 
 	theme := Theme{}
 	if imageDir == "" {
