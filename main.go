@@ -22,6 +22,7 @@ import (
 	"strings"
 
 	"github.com/disintegration/imaging"
+	"github.com/mattn/go-isatty"
 	"github.com/mattn/go-sixel"
 	"github.com/mattn/longcat/iterm"
 	"github.com/mattn/longcat/pixterm"
@@ -178,6 +179,9 @@ func checkIterm() bool {
 }
 
 func checkSixel() bool {
+	if isatty.IsCygwinTerminal(os.Stdout.Fd()) {
+		return true
+	}
 	s, err := terminal.MakeRaw(1)
 	if err != nil {
 		return false
