@@ -45,6 +45,6 @@ func (e *Encoder) Encode(img image.Image) error {
 	if err != nil {
 		return err
 	}
-	pix.Draw()
+	e.w.Write([]byte(pix.Render()))
 	return nil
 }
