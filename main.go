@@ -210,7 +210,7 @@ func checkSixel() bool {
 	if !supported {
 		return false
 	}
-	for _, t := range bytes.Split(b[4:n], []byte(";")) {
+	for _, t := range bytes.Split(b[6:n], []byte(";")) {
 		if len(t) == 1 && t[0] == '4' {
 			return true
 		}
