@@ -9,4 +9,5 @@ require (
 	github.com/mattn/go-sixel v0.0.0-20190320171103-a8fac8fa7d81
 	github.com/rakyll/statik v0.1.6
 	github.com/soniakeys/quant v1.0.0 // indirect
+	golang.org/x/crypto v0.0.0-20190911031432-227b76d455e7
 )

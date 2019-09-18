@@ -8,6 +8,9 @@ import (
 	"flag"
 	"fmt"
 	"io/ioutil"
+	"time"
+
+	"golang.org/x/crypto/ssh/terminal"
 
 	"image"
 	"image/draw"
@@ -85,7 +88,7 @@ func (t *Theme) loadTheme(themeName string) error {
 	}
 
 	imgPath := func(s string) string {
-		return filepath.Join("/themes", themeName, s)
+		return filepath.ToSlash(filepath.Join("/themes", themeName, s))
 	}
 
 	t.Head, err = loadImage(fs, imgPath("data01.png"))
@@ -168,6 +171,38 @@ func printThemeNames() error {
 		fmt.Println(v)
 	}
 	return nil
+}
+
+func checkIterm() bool {
+	return strings.HasPrefix(os.Getenv("TERM_PROGRAM"), "iTerm")
+}
+
+func checkSixel() bool {
+	s, err := terminal.MakeRaw(1)
+	if err != nil {
+		return false
+	}
+	defer terminal.Restore(1, s)
+	_, err = os.Stdout.Write([]byte("\x1b[c"))
+	if err != nil {
+		return false
+	}
+	defer os.Stdout.SetReadDeadline(time.Time{})
+
+	var b [100]byte
+	n, err := os.Stdout.Read(b[:])
+	if err != nil {
+		return false
+	}
+	if !bytes.HasPrefix(b[:n], []byte("\x1b[?63;")) {
+		return false
+	}
+	for _, t := range bytes.Split(b[4:n], []byte(";")) {
+		if len(t) == 1 && t[0] == '4' {
+			return true
+		}
+	}
+	return false
 }
 
 func main() {
@@ -266,15 +301,21 @@ func main() {
 	var enc interface {
 		Encode(image.Image) error
 	}
-	if isPixterm {
-		enc = pixterm.NewEncoder(&buf)
-	} else {
-		if strings.HasPrefix(os.Getenv("TERM_PROGRAM"), "iTerm") {
+
+	if !isPixterm {
+		if checkIterm() {
 			enc = iterm.NewEncoder(&buf)
-		} else {
+		} else if checkSixel() {
 			enc = sixel.NewEncoder(&buf)
+		} else {
+			isPixterm = true
 		}
 	}
+
+	if isPixterm {
+		enc = pixterm.NewEncoder(&buf)
+	}
+
 	if err := enc.Encode(output); err != nil {
 		log.Fatal(err)
 	}
