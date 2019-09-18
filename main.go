@@ -230,6 +230,7 @@ func main() {
 	var themeName string
 	var isPixterm bool
 	var listsThemes bool
+	var darkMode bool
 
 	flag.IntVar(&nlong, "n", 1, "how long cat")
 	flag.IntVar(&ncolumns, "l", 1, "number of columns")
@@ -242,6 +243,7 @@ func main() {
 	flag.StringVar(&themeName, "t", "longcat", "name of theme")
 	flag.BoolVar(&isPixterm, "pixterm", false, "pixterm mode")
 	flag.BoolVar(&listsThemes, "themes", false, "list themes")
+	flag.BoolVar(&darkMode, "dark", false, "dark-mode(a.k.a. tacgnol theme)")
 
 	flag.Parse()
 
@@ -250,6 +252,11 @@ func main() {
 			log.Fatal(err)
 		}
 		return
+	}
+
+	if darkMode {
+		themeName = "tacgnol"
+		imageDir = "" // Forcibly apply the above theme
 	}
 
 	theme := Theme{}
