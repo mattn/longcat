@@ -195,9 +195,10 @@ func checkSixel() bool {
 		return false
 	}
 	var supportedTerminals = []string{
-		"\x1b[?63;",
-		"\x1b[?64;",
-		"\x1b[?65;",
+		"\x1b[?62;", // VT240
+		"\x1b[?63;", // wsltty
+		"\x1b[?64;", // mintty
+		"\x1b[?65;", // RLogin
 	}
 	supported := false
 	for _, supportedTerminal := range supportedTerminals {
