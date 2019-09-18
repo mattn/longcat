@@ -21,6 +21,7 @@ import (
 	"github.com/disintegration/imaging"
 	"github.com/mattn/go-sixel"
 	"github.com/mattn/longcat/iterm"
+	"github.com/mattn/longcat/pixterm"
 	_ "github.com/mattn/longcat/statik"
 	"github.com/rakyll/statik/fs"
 )
@@ -179,6 +180,7 @@ func main() {
 	var filename string
 	var imageDir string
 	var themeName string
+	var isPixterm bool
 	var listsThemes bool
 
 	flag.IntVar(&nlong, "n", 1, "how long cat")
@@ -190,6 +192,7 @@ func main() {
 	flag.StringVar(&filename, "o", "", "output image file")
 	flag.StringVar(&imageDir, "d", "", "directory of images(dir/*{1,2,3}.png)")
 	flag.StringVar(&themeName, "t", "longcat", "name of theme")
+	flag.BoolVar(&isPixterm, "pixterm", false, "pixterm mode")
 	flag.BoolVar(&listsThemes, "themes", false, "list themes")
 
 	flag.Parse()
@@ -263,10 +266,14 @@ func main() {
 	var enc interface {
 		Encode(image.Image) error
 	}
-	if strings.HasPrefix(os.Getenv("TERM_PROGRAM"), "iTerm") {
-		enc = iterm.NewEncoder(&buf)
+	if isPixterm {
+		enc = pixterm.NewEncoder(&buf)
 	} else {
-		enc = sixel.NewEncoder(&buf)
+		if strings.HasPrefix(os.Getenv("TERM_PROGRAM"), "iTerm") {
+			enc = iterm.NewEncoder(&buf)
+		} else {
+			enc = sixel.NewEncoder(&buf)
+		}
 	}
 	if err := enc.Encode(output); err != nil {
 		log.Fatal(err)
