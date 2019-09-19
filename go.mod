@@ -11,4 +11,5 @@ require (
 	github.com/rakyll/statik v0.1.6
 	github.com/soniakeys/quant v1.0.0 // indirect
 	golang.org/x/crypto v0.0.0-20190911031432-227b76d455e7
+	golang.org/x/sys v0.0.0-20190916202348-b4ddaad3f8a3 // indirect
 )
