@@ -10,6 +10,7 @@ require (
 	github.com/mattn/go-sixel v0.0.0-20190320171103-a8fac8fa7d81
 	github.com/rakyll/statik v0.1.6
 	github.com/soniakeys/quant v1.0.0 // indirect
+	github.com/zyxar/image2ascii v0.0.0-20180912034614-460a04e371ae
 	golang.org/x/crypto v0.0.0-20190911031432-227b76d455e7
 	golang.org/x/sys v0.0.0-20190916202348-b4ddaad3f8a3 // indirect
 )

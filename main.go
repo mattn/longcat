@@ -24,6 +24,7 @@ import (
 	"github.com/disintegration/imaging"
 	"github.com/mattn/go-isatty"
 	"github.com/mattn/go-sixel"
+	"github.com/mattn/longcat/ascii"
 	"github.com/mattn/longcat/iterm"
 	"github.com/mattn/longcat/pixterm"
 	_ "github.com/mattn/longcat/statik"
@@ -235,6 +236,7 @@ func main() {
 	var isPixterm bool
 	var listsThemes bool
 	var darkMode bool
+	var asciiMode bool
 
 	flag.IntVar(&nlong, "n", 1, "how long cat")
 	flag.IntVar(&ncolumns, "l", 1, "number of columns")
@@ -248,6 +250,7 @@ func main() {
 	flag.BoolVar(&isPixterm, "pixterm", false, "pixterm mode")
 	flag.BoolVar(&listsThemes, "themes", false, "list themes")
 	flag.BoolVar(&darkMode, "dark", false, "dark-mode(a.k.a. tacgnol theme)")
+	flag.BoolVar(&asciiMode, "ascii", false, "ascii mode")
 
 	flag.Parse()
 
@@ -338,6 +341,10 @@ func main() {
 
 	if isPixterm {
 		enc = pixterm.NewEncoder(&buf)
+	}
+
+	if asciiMode {
+		enc = ascii.NewEncoder(&buf)
 	}
 
 	if err := enc.Encode(output); err != nil {
