@@ -7,6 +7,8 @@ import (
 	"image"
 	"image/png"
 	"io"
+
+	"github.com/disintegration/imaging"
 )
 
 // Encoder encode image to sixel format
@@ -23,6 +25,17 @@ func NewEncoder(w io.Writer) *Encoder {
 
 func (e *Encoder) Encode(img image.Image) error {
 	width, height := img.Bounds().Dx(), img.Bounds().Dy()
+	maxDimension := 9999 // kMaxDimension-1 in iTerm2/sources/iTermImage.m
+	if width > maxDimension || height > maxDimension {
+		if width > height {
+			height = height * maxDimension / width
+			width = maxDimension
+		} else {
+			width = width * maxDimension / height
+			height = maxDimension
+		}
+		img = imaging.Resize(img, width, height, imaging.Lanczos)
+	}
 	if e.Width != 0 {
 		width = e.Width
 	}
