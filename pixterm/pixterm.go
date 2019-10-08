@@ -6,7 +6,7 @@ import (
 	"image/png"
 	"io"
 
-	"github.com/johejo/pixterm/ansimage"
+	"github.com/eliukblau/pixterm/ansimage"
 	"github.com/lucasb-eyer/go-colorful"
 )
 
