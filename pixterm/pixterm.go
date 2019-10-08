@@ -7,9 +7,9 @@ import (
 	"io"
 	"os"
 
-	"github.com/johejo/pixterm/ansimage"
 	"github.com/lucasb-eyer/go-colorful"
 	"golang.org/x/crypto/ssh/terminal"
+	"github.com/mattn/pixterm/ansimage"
 )
 
 // Encoder encode image to sixel format
