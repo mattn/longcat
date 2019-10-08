@@ -5,9 +5,11 @@ import (
 	"image"
 	"image/png"
 	"io"
+	"os"
 
-	"github.com/johejo/pixterm/ansimage"
 	"github.com/lucasb-eyer/go-colorful"
+	"github.com/mattn/pixterm/ansimage"
+	"golang.org/x/crypto/ssh/terminal"
 )
 
 // Encoder encode image to sixel format
@@ -24,6 +26,10 @@ func NewEncoder(w io.Writer) *Encoder {
 
 func (e *Encoder) Encode(img image.Image) error {
 	width, height := img.Bounds().Dx(), img.Bounds().Dy()
+	tw, _, err := terminal.GetSize(int(os.Stdout.Fd()))
+	if err == nil && width > tw*ansimage.BlockSizeX {
+		width = tw * ansimage.BlockSizeX
+	}
 	if e.Width != 0 {
 		width = e.Width
 	}
