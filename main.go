@@ -8,6 +8,7 @@ import (
 	"flag"
 	"fmt"
 	"io/ioutil"
+	"runtime"
 	"time"
 
 	"golang.org/x/crypto/ssh/terminal"
@@ -330,7 +331,9 @@ func main() {
 	}
 
 	if !isPixterm {
-		if checkIterm() {
+		if runtime.GOOS == "windows" && !isatty.IsCygwinTerminal(os.Stdout.Fd()) {
+			asciiMode = true
+		} else if checkIterm() {
 			enc = iterm.NewEncoder(&buf)
 		} else if checkSixel() {
 			enc = sixel.NewEncoder(&buf)
