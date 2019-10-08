@@ -6,8 +6,8 @@ import (
 	"image/png"
 	"io"
 
-	"github.com/eliukblau/pixterm/ansimage"
 	"github.com/lucasb-eyer/go-colorful"
+	"github.com/mattn/pixterm/ansimage"
 )
 
 // Encoder encode image to sixel format
