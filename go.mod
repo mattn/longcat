@@ -1,6 +1,6 @@
 module github.com/mattn/longcat
 
-go 1.13
+go 1.11
 
 require (
 	github.com/disintegration/imaging v1.6.1
