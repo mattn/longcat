@@ -251,6 +251,16 @@ func main() {
 
 	flag.Parse()
 
+	if nlong < 1 {
+		log.SetFlags(0)
+		log.Fatalf("invalid value \"%v\" for flag -n", nlong)
+	}
+	
+	if ncolumns < 1 {
+		log.SetFlags(0)
+		log.Fatalf("invalid value \"%v\" for flag -l", ncolumns)
+	}
+	
 	if listsThemes {
 		if err := printThemeNames(); err != nil {
 			log.Fatal(err)
