@@ -130,6 +130,10 @@ func (t *Theme) loadThemeFromDir(dir string) error {
 }
 
 func saveImage(filename string, img image.Image) error {
+	width, height := img.Bounds().Dx(), img.Bounds().Dy()
+	if width == 0 || height == 0 {
+		return nil
+	}
 	var buf bytes.Buffer
 	err := png.Encode(&buf, img)
 	if err != nil {
