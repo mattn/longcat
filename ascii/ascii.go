@@ -25,6 +25,9 @@ func NewEncoder(w io.Writer) *Encoder {
 
 func (e *Encoder) Encode(img image.Image) error {
 	width, height := img.Bounds().Dx(), img.Bounds().Dy()
+	if width == 0 || height == 0 {
+		return nil
+	}
 	tw, _, err := terminal.GetSize(int(os.Stdout.Fd()))
 	if err == nil && width > tw {
 		width = tw
