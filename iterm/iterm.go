@@ -25,6 +25,9 @@ func NewEncoder(w io.Writer) *Encoder {
 
 func (e *Encoder) Encode(img image.Image) error {
 	width, height := img.Bounds().Dx(), img.Bounds().Dy()
+	if width == 0 || height == 0 {
+		return nil
+	}
 	maxDimension := 9999 // kMaxDimension-1 in iTerm2/sources/iTermImage.m
 	if width > maxDimension || height > maxDimension {
 		if width > height {
