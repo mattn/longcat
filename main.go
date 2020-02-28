@@ -273,6 +273,9 @@ func main() {
 		return
 	}
 
+	var vtenabled bool
+	defer setup(&vtenabled)()
+
 	if darkMode {
 		themeName = "tacgnol"
 		imageDir = "" // Forcibly apply the above theme
@@ -343,7 +346,11 @@ func main() {
 
 	if !isPixterm {
 		if runtime.GOOS == "windows" && !isatty.IsCygwinTerminal(os.Stdout.Fd()) {
-			asciiMode = true
+			if vtenabled {
+				isPixterm = true
+			} else {
+				asciiMode = true
+			}
 		} else if checkIterm() {
 			enc = iterm.NewEncoder(&buf)
 		} else if checkSixel() {
