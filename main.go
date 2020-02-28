@@ -274,7 +274,7 @@ func main() {
 	}
 
 	var vtenabled bool
-	defer setup(&vtenabled)()
+	defer colorable.EnableColorsStdout(&vtenabled)()
 
 	if darkMode {
 		themeName = "tacgnol"

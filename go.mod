@@ -5,7 +5,7 @@ go 1.11
 require (
 	github.com/disintegration/imaging v1.6.2
 	github.com/lucasb-eyer/go-colorful v1.0.3
-	github.com/mattn/go-colorable v0.1.5
+	github.com/mattn/go-colorable v0.1.6
 	github.com/mattn/go-isatty v0.0.12
 	github.com/mattn/go-sixel v0.0.1
 	github.com/mattn/pixterm v1.2.5-0.20191008162044-72ff621ffbff
