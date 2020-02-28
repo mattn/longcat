@@ -23,6 +23,7 @@ import (
 	"strings"
 
 	"github.com/disintegration/imaging"
+	"github.com/mattn/go-colorable"
 	"github.com/mattn/go-isatty"
 	"github.com/mattn/go-sixel"
 	"github.com/mattn/longcat/ascii"
@@ -363,6 +364,11 @@ func main() {
 	if err := enc.Encode(output); err != nil {
 		log.Fatal(err)
 	}
-	os.Stdout.Write(buf.Bytes())
+
+	if runtime.GOOS == "windows" {
+		colorable.NewColorableStdout().Write(buf.Bytes())
+	} else {
+		os.Stdout.Write(buf.Bytes())
+	}
 	os.Stdout.Sync()
 }

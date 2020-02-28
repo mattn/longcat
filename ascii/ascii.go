@@ -44,7 +44,7 @@ func (e *Encoder) Encode(img image.Image) error {
 	}
 
 	_w, _h := width/4, height/9 // By default 31x31.
-	a, err := ascii.Decode(&buf, ascii.Options{Width: _w, Height: _h})
+	a, err := ascii.Decode(&buf, ascii.Options{Width: _w, Height: _h, Color: true})
 	if err != nil {
 		return err
 	}
