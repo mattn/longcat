@@ -185,6 +185,10 @@ func checkIterm() bool {
 	return strings.HasPrefix(os.Getenv("TERM_PROGRAM"), "iTerm")
 }
 
+func checkTerminalApp() bool {
+	return os.Getenv("TERM_PROGRAM") == "Apple_Terminal"
+}
+
 func checkSixel() bool {
 	if isatty.IsCygwinTerminal(os.Stdout.Fd()) {
 		return true
@@ -246,6 +250,7 @@ func main() {
 	var imageDir string
 	var themeName string
 	var isPixterm bool
+	var is8BitColor bool
 	var listsThemes bool
 	var darkMode bool
 	var asciiMode bool
@@ -260,6 +265,7 @@ func main() {
 	flag.StringVar(&imageDir, "d", "", "directory of images(dir/*{1,2,3}.png)")
 	flag.StringVar(&themeName, "t", "longcat", "name of theme")
 	flag.BoolVar(&isPixterm, "pixterm", false, "pixterm mode")
+	flag.BoolVar(&is8BitColor, "8", false, "8bit color")
 	flag.BoolVar(&listsThemes, "themes", false, "list themes")
 	flag.BoolVar(&darkMode, "dark", false, "dark-mode(a.k.a. tacgnol theme)")
 	flag.BoolVar(&asciiMode, "ascii", false, "ascii mode")
@@ -361,7 +367,8 @@ func main() {
 	}
 
 	if isPixterm {
-		enc = pixterm.NewEncoder(&buf)
+		is8BitColor = checkTerminalApp()
+		enc = pixterm.NewEncoder(&buf, is8BitColor)
 	}
 
 	if asciiMode {
