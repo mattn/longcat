@@ -29,6 +29,8 @@ github.com/soniakeys/quant v1.0.0 h1:N1um9ktjbkZVcywBVAAYpZYSHxEfJGzshHCxx/DaI0Y
 github.com/soniakeys/quant v1.0.0/go.mod h1:HI1k023QuVbD4H8i9YdfZP2munIHU4QpjsImz6Y6zds=
 github.com/stretchr/testify v1.2.2 h1:bSDNvY7ZPG5RlJ8otE/7V6gMiyenm9RtJ7IUVIAoJ1w=
 github.com/stretchr/testify v1.2.2/go.mod h1:a8OnRcib4nhh0OaRAV+Yts87kKdq0PP7pXfy6kDkUVs=
+github.com/tomnomnom/xtermcolor v0.0.0-20160428124646-b78803f00a7e h1:Ee+VZw13r9NTOMnwTPs6O5KZ0MJU54hsxu9FpZ4pQ10=
+github.com/tomnomnom/xtermcolor v0.0.0-20160428124646-b78803f00a7e/go.mod h1:fSIW/szJHsRts/4U8wlMPhs+YqJC+7NYR+Qqb1uJVpA=
 github.com/zyxar/image2ascii v0.0.0-20180912034614-460a04e371ae h1:EiqxsQwk1eimsz+ncJrsMMMwnkYTGiVOrLe5lGxL9cs=
 github.com/zyxar/image2ascii v0.0.0-20180912034614-460a04e371ae/go.mod h1:Md4Hcw0pmYWDCo1o/fHeOC2Gdhc6oDRwLim8V+SMvI0=
 golang.org/x/crypto v0.0.0-20190308221718-c2843e01d9a2/go.mod h1:djNgcEr1/C05ACkg1iLfiJU5Ep61QUkGW8qpdssI0+w=
