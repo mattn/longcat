@@ -20,7 +20,6 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
-	"strings"
 
 	"github.com/disintegration/imaging"
 	"github.com/mattn/go-colorable"
@@ -182,11 +181,43 @@ func printThemeNames() error {
 }
 
 func checkIterm() bool {
-	return strings.HasPrefix(os.Getenv("TERM_PROGRAM"), "iTerm")
+	s, err := terminal.MakeRaw(1)
+	if err != nil {
+		return false
+	}
+	defer terminal.Restore(1, s)
+	_, err = os.Stdout.Write([]byte("\x1b[>c"))
+	if err != nil {
+		return false
+	}
+	defer os.Stdout.SetReadDeadline(time.Time{})
+
+	var b [100]byte
+	n, err := os.Stdout.Read(b[:])
+	if err != nil {
+		return false
+	}
+	return string(b[:n]) == "\x1b[>0;95;0c" // iTerm2 version 3
 }
 
 func checkTerminalApp() bool {
-	return os.Getenv("TERM_PROGRAM") == "Apple_Terminal"
+	s, err := terminal.MakeRaw(1)
+	if err != nil {
+		return false
+	}
+	defer terminal.Restore(1, s)
+	_, err = os.Stdout.Write([]byte("\x1b[>c"))
+	if err != nil {
+		return false
+	}
+	defer os.Stdout.SetReadDeadline(time.Time{})
+
+	var b [100]byte
+	n, err := os.Stdout.Read(b[:])
+	if err != nil {
+		return false
+	}
+	return string(b[:n]) == "\x1b[>1;95;0c" // Terminal.app
 }
 
 func checkSixel() bool {
