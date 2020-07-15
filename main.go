@@ -20,6 +20,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/disintegration/imaging"
 	"github.com/mattn/go-colorable"
@@ -181,12 +182,19 @@ func printThemeNames() error {
 }
 
 func checkIterm() bool {
+	if strings.HasPrefix(os.Getenv("TERM_PROGRAM"), "iTerm") {
+		return true
+	}
+	if runtime.GOOS == "darwin" {
+		// we cannot read DA2 terminal response correctly
+		return false
+	}
 	s, err := terminal.MakeRaw(1)
 	if err != nil {
 		return false
 	}
 	defer terminal.Restore(1, s)
-	_, err = os.Stdout.Write([]byte("\x1b[>c"))
+	_, err = os.Stdout.Write([]byte("\x1b[>c")) // DA2 host request
 	if err != nil {
 		return false
 	}
@@ -201,12 +209,19 @@ func checkIterm() bool {
 }
 
 func checkTerminalApp() bool {
+	if os.Getenv("TERM_PROGRAM") == "Apple_Terminal" {
+		return true
+	}
+	if runtime.GOOS == "darwin" {
+		// DA2 terminal response cannot be read correctly
+		return false
+	}
 	s, err := terminal.MakeRaw(1)
 	if err != nil {
 		return false
 	}
 	defer terminal.Restore(1, s)
-	_, err = os.Stdout.Write([]byte("\x1b[>c"))
+	_, err = os.Stdout.Write([]byte("\x1b[>c")) // DA2 host request
 	if err != nil {
 		return false
 	}
