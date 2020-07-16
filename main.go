@@ -182,11 +182,53 @@ func printThemeNames() error {
 }
 
 func checkIterm() bool {
-	return strings.HasPrefix(os.Getenv("TERM_PROGRAM"), "iTerm")
+	if strings.HasPrefix(os.Getenv("TERM_PROGRAM"), "iTerm") {
+		return true
+	}
+	s, err := terminal.MakeRaw(1)
+	if err != nil {
+		return false
+	}
+	defer terminal.Restore(1, s)
+	_, err = os.Stdout.Write([]byte("\x1b[>c")) // DA2 host request
+	if err != nil {
+		return false
+	}
+	defer os.Stdout.SetReadDeadline(time.Time{})
+
+	time.Sleep(10 * time.Millisecond)
+
+	var b [100]byte
+	n, err := os.Stdout.Read(b[:])
+	if err != nil {
+		return false
+	}
+	return string(b[:n]) == "\x1b[>0;95;0c" // iTerm2 version 3
 }
 
 func checkTerminalApp() bool {
-	return os.Getenv("TERM_PROGRAM") == "Apple_Terminal"
+	if os.Getenv("TERM_PROGRAM") == "Apple_Terminal" {
+		return true
+	}
+	s, err := terminal.MakeRaw(1)
+	if err != nil {
+		return false
+	}
+	defer terminal.Restore(1, s)
+	_, err = os.Stdout.Write([]byte("\x1b[>c")) // DA2 host request
+	if err != nil {
+		return false
+	}
+	defer os.Stdout.SetReadDeadline(time.Time{})
+
+	time.Sleep(10 * time.Millisecond)
+
+	var b [100]byte
+	n, err := os.Stdout.Read(b[:])
+	if err != nil {
+		return false
+	}
+	return string(b[:n]) == "\x1b[>1;95;0c" // Terminal.app
 }
 
 func checkSixel() bool {
@@ -203,6 +245,8 @@ func checkSixel() bool {
 		return false
 	}
 	defer os.Stdout.SetReadDeadline(time.Time{})
+
+	time.Sleep(10 * time.Millisecond)
 
 	var b [100]byte
 	n, err := os.Stdout.Read(b[:])
