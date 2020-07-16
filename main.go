@@ -411,7 +411,7 @@ func main() {
 	}
 
 	if isPixterm {
-		is8BitColor = checkTerminalApp()
+		is8BitColor = is8BitColor || checkTerminalApp()
 		enc = pixterm.NewEncoder(&buf, is8BitColor)
 	}
 
