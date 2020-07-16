@@ -185,10 +185,6 @@ func checkIterm() bool {
 	if strings.HasPrefix(os.Getenv("TERM_PROGRAM"), "iTerm") {
 		return true
 	}
-	if runtime.GOOS == "darwin" {
-		// we cannot read DA2 terminal response correctly
-		return false
-	}
 	s, err := terminal.MakeRaw(1)
 	if err != nil {
 		return false
@@ -199,6 +195,8 @@ func checkIterm() bool {
 		return false
 	}
 	defer os.Stdout.SetReadDeadline(time.Time{})
+
+	time.Sleep(10 * time.Millisecond)
 
 	var b [100]byte
 	n, err := os.Stdout.Read(b[:])
@@ -212,10 +210,6 @@ func checkTerminalApp() bool {
 	if os.Getenv("TERM_PROGRAM") == "Apple_Terminal" {
 		return true
 	}
-	if runtime.GOOS == "darwin" {
-		// DA2 terminal response cannot be read correctly
-		return false
-	}
 	s, err := terminal.MakeRaw(1)
 	if err != nil {
 		return false
@@ -226,6 +220,8 @@ func checkTerminalApp() bool {
 		return false
 	}
 	defer os.Stdout.SetReadDeadline(time.Time{})
+
+	time.Sleep(10 * time.Millisecond)
 
 	var b [100]byte
 	n, err := os.Stdout.Read(b[:])
@@ -249,6 +245,8 @@ func checkSixel() bool {
 		return false
 	}
 	defer os.Stdout.SetReadDeadline(time.Time{})
+
+	time.Sleep(10 * time.Millisecond)
 
 	var b [100]byte
 	n, err := os.Stdout.Read(b[:])
