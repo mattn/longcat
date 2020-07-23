@@ -58,7 +58,7 @@ func (e *Encoder) Encode(img image.Image) error {
 		return nil
 	}
 	tw, _, err := terminal.GetSize(int(os.Stdout.Fd()))
-	if err == nil && width > tw*ansimage.BlockSizeX {
+	if err == nil && tw > 0 && width > tw*ansimage.BlockSizeX {
 		width = tw * ansimage.BlockSizeX
 	}
 	if e.Width != 0 {
