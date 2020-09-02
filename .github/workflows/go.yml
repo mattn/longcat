@@ -1,5 +1,5 @@
 name: Go
-on: [push]
+on: [push, pull_request]
 jobs:
 
   build:
@@ -7,22 +7,30 @@ jobs:
     runs-on: ubuntu-latest
     steps:
 
-    - name: Set up Go 1.12
-      uses: actions/setup-go@v1
+    - name: Set up Go 1.15
+      uses: actions/setup-go@v2
       with:
-        go-version: 1.12
+        go-version: 1.15
       id: go
 
     - name: Check out code into the Go module directory
-      uses: actions/checkout@v1
-
-    - name: Get dependencies
-      run: |
-        go get -v -t -d ./...
-        if [ -f Gopkg.toml ]; then
-            curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
-            dep ensure
-        fi
+      uses: actions/checkout@v2
 
     - name: Build
       run: go build -v .
+
+  docker:
+    name: Docker
+    runs-on: ubuntu-latest
+    steps:
+
+    - uses: actions/checkout@v2
+
+    - name: docker build
+      run: docker build -t mattn/longcat .
+
+    - name: check image size
+      run: docker images | grep longcat
+
+    - name: check run
+      run: docker run --rm mattn/longcat
