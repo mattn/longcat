@@ -33,6 +33,12 @@ import (
 	"github.com/rakyll/statik/fs"
 )
 
+const name = "longcat"
+
+const version = "0.0.1"
+
+var revision = "HEAD"
+
 // Theme of longcat
 type Theme struct {
 	Head image.Image
@@ -298,6 +304,7 @@ func main() {
 	var listsThemes bool
 	var darkMode bool
 	var asciiMode bool
+	var showVersion bool
 
 	flag.IntVar(&nlong, "n", 1, "how long cat")
 	flag.IntVar(&ncolumns, "l", 1, "number of columns")
@@ -313,8 +320,14 @@ func main() {
 	flag.BoolVar(&listsThemes, "themes", false, "list themes")
 	flag.BoolVar(&darkMode, "dark", false, "dark-mode(a.k.a. tacgnol theme)")
 	flag.BoolVar(&asciiMode, "ascii", false, "ascii mode")
+	flag.BoolVar(&showVersion, "v", false, "print the version")
 
 	flag.Parse()
+
+	if showVersion {
+		fmt.Printf("%s %s (rev: %s/%s)\n", name, version, revision, runtime.Version())
+		return
+	}
 
 	if listsThemes {
 		if err := printThemeNames(); err != nil {

@@ -16,6 +16,12 @@ $ longcat -n 6
 $ go get github.com/mattn/longcat
 ```
 
+Or run with docker
+
+```
+$ docker run ghcr.io/mattn/longcat
+```
+
 ## License
 
 MIT
