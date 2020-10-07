@@ -42,7 +42,7 @@ func (e *Encoder) Encode(img image.Image) error {
 	b64data := base64.StdEncoding.EncodeToString(buf.Bytes())
 	chunk_size := 4096
 	var builder strings.Builder
-	for i := 0; i < int(math.Ceil(float64(len(b64data))/chunk_size)); i++ {
+	for i := 0; i < int(math.Ceil(float64(len(b64data))/float64(chunk_size))); i++ {
 		if i == 0 {
 			builder.WriteString(fmt.Sprintf("\033_Ga=T,f=100,s=%d,v=%d,", width, height))
 		} else {
