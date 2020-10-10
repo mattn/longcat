@@ -28,6 +28,7 @@ import (
 	"github.com/mattn/go-sixel"
 	"github.com/mattn/longcat/ascii"
 	"github.com/mattn/longcat/iterm"
+	"github.com/mattn/longcat/kitty"
 	"github.com/mattn/longcat/pixterm"
 	_ "github.com/mattn/longcat/statik"
 	"github.com/rakyll/statik/fs"
@@ -187,18 +188,15 @@ func printThemeNames() error {
 	return nil
 }
 
-func checkIterm() bool {
-	if strings.HasPrefix(os.Getenv("TERM_PROGRAM"), "iTerm") {
-		return true
-	}
+func getDA2() string {
 	s, err := terminal.MakeRaw(1)
 	if err != nil {
-		return false
+		return ""
 	}
 	defer terminal.Restore(1, s)
 	_, err = os.Stdout.Write([]byte("\x1b[>c")) // DA2 host request
 	if err != nil {
-		return false
+		return ""
 	}
 	defer os.Stdout.SetReadDeadline(time.Time{})
 
@@ -207,34 +205,30 @@ func checkIterm() bool {
 	var b [100]byte
 	n, err := os.Stdout.Read(b[:])
 	if err != nil {
-		return false
+		return ""
 	}
-	return string(b[:n]) == "\x1b[>0;95;0c" // iTerm2 version 3
+	return string(b[:n])
+}
+
+func checkIterm() bool {
+	if strings.HasPrefix(os.Getenv("TERM_PROGRAM"), "iTerm") {
+		return true
+	}
+	return getDA2() == "\x1b[>0;95;0c" // iTerm2 version 3
+}
+
+func checkKitty() bool {
+	if os.Getenv("KITTY_WINDOW_ID") != "" {
+		return true
+	}
+	return strings.HasPrefix(getDA2(), "\x1b[>1;4000;") // \x1b[>1;{major+4000};{minor}c
 }
 
 func checkTerminalApp() bool {
 	if os.Getenv("TERM_PROGRAM") == "Apple_Terminal" {
 		return true
 	}
-	s, err := terminal.MakeRaw(1)
-	if err != nil {
-		return false
-	}
-	defer terminal.Restore(1, s)
-	_, err = os.Stdout.Write([]byte("\x1b[>c")) // DA2 host request
-	if err != nil {
-		return false
-	}
-	defer os.Stdout.SetReadDeadline(time.Time{})
-
-	time.Sleep(10 * time.Millisecond)
-
-	var b [100]byte
-	n, err := os.Stdout.Read(b[:])
-	if err != nil {
-		return false
-	}
-	return string(b[:n]) == "\x1b[>1;95;0c" // Terminal.app
+	return getDA2() == "\x1b[>1;95;0c" // Terminal.app
 }
 
 func checkSixel() bool {
@@ -416,6 +410,8 @@ func main() {
 			}
 		} else if checkIterm() {
 			enc = iterm.NewEncoder(&buf)
+		} else if checkKitty() {
+			enc = kitty.NewEncoder(&buf)
 		} else if checkSixel() {
 			enc = sixel.NewEncoder(&buf)
 		} else {
