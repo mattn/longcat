@@ -9,6 +9,8 @@ import (
 	"io"
 	"math"
 	"strings"
+
+	"github.com/disintegration/imaging"
 )
 
 // Encoder encode image to sixel format
@@ -27,6 +29,17 @@ func (e *Encoder) Encode(img image.Image) error {
 	width, height := img.Bounds().Dx(), img.Bounds().Dy()
 	if width == 0 || height == 0 {
 		return nil
+	}
+	max_size := 10000
+	if width > max_size || height > max_size {
+		if width > height {
+			height = height * max_size / width
+			width = max_size
+		} else {
+			width = width * max_size / height
+			height = max_size
+		}
+		img = imaging.Resize(img, width, height, imaging.Lanczos)
 	}
 	if e.Width != 0 {
 		width = e.Width
