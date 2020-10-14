@@ -33,10 +33,10 @@ func (e *Encoder) Encode(img image.Image) error {
 	max_size := 10000
 	if width > max_size || height > max_size {
 		if width > height {
-			height = height * max_size / width
 			width = max_size
+			height = 0 // preserve aspect ratio
 		} else {
-			width = width * max_size / height
+			width = 0 // preserve aspect ratio
 			height = max_size
 		}
 		img = imaging.Resize(img, width, height, imaging.Lanczos)
