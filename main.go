@@ -224,11 +224,21 @@ func checkKitty() bool {
 	return strings.HasPrefix(getDA2(), "\x1b[>1;4000;") // \x1b[>1;{major+4000};{minor}c
 }
 
-func checkTerminalApp() bool {
-	if os.Getenv("TERM_PROGRAM") == "Apple_Terminal" {
+func check8BitColor() bool {
+	if os.Getenv("TERM_PROGRAM") == "Apple_Terminal" { // Terminal.app
 		return true
 	}
-	return getDA2() == "\x1b[>1;95;0c" // Terminal.app
+	da2 := getDA2()
+	var supportedTerminals = []string{
+		"\x1b[>1;95;0c",  // Terminal.app
+		"\x1b[>0;276;0c", // tty.js (xterm mode)
+	}
+	for _, supportedTerminal := range supportedTerminals {
+		if da2 == supportedTerminal {
+			return true
+		}
+	}
+	return false
 }
 
 func checkSixel() bool {
@@ -420,7 +430,7 @@ func main() {
 	}
 
 	if isPixterm {
-		is8BitColor = is8BitColor || checkTerminalApp()
+		is8BitColor = is8BitColor || check8BitColor()
 		enc = pixterm.NewEncoder(&buf, is8BitColor)
 	}
 
