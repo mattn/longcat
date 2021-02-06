@@ -15,7 +15,7 @@ import (
 	"github.com/eliukblau/pixterm/pkg/ansimage"
 	"github.com/lucasb-eyer/go-colorful"
 	"github.com/tomnomnom/xtermcolor"
-	"golang.org/x/crypto/ssh/terminal"
+	"golang.org/x/term"
 )
 
 // Encoder encode image to sixel format
@@ -56,7 +56,7 @@ func (e *Encoder) Encode(img image.Image) error {
 	if width == 0 || height == 0 {
 		return nil
 	}
-	tw, _, err := terminal.GetSize(int(os.Stdout.Fd()))
+	tw, _, err := term.GetSize(int(os.Stdout.Fd()))
 	if err == nil && tw > 0 && width > tw*ansimage.BlockSizeX {
 		width = tw * ansimage.BlockSizeX
 	}

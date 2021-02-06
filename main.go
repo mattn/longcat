@@ -13,7 +13,7 @@ import (
 	"runtime"
 	"time"
 
-	"golang.org/x/crypto/ssh/terminal"
+	"golang.org/x/term"
 
 	"image"
 	"image/draw"
@@ -174,11 +174,11 @@ func printThemeNames() error {
 }
 
 func getDA2() string {
-	s, err := terminal.MakeRaw(1)
+	s, err := term.MakeRaw(1)
 	if err != nil {
 		return ""
 	}
-	defer terminal.Restore(1, s)
+	defer term.Restore(1, s)
 	_, err = os.Stdout.Write([]byte("\x1b[>c")) // DA2 host request
 	if err != nil {
 		return ""
@@ -230,11 +230,11 @@ func checkSixel() bool {
 	if isatty.IsCygwinTerminal(os.Stdout.Fd()) {
 		return true
 	}
-	s, err := terminal.MakeRaw(1)
+	s, err := term.MakeRaw(1)
 	if err != nil {
 		return false
 	}
-	defer terminal.Restore(1, s)
+	defer term.Restore(1, s)
 	_, err = os.Stdout.Write([]byte("\x1b[c"))
 	if err != nil {
 		return false
