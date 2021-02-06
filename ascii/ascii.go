@@ -8,7 +8,7 @@ import (
 	"os"
 
 	"github.com/zyxar/image2ascii/ascii"
-	"golang.org/x/crypto/ssh/terminal"
+	"golang.org/x/term"
 )
 
 // Encoder encode image to sixel format
@@ -28,7 +28,7 @@ func (e *Encoder) Encode(img image.Image) error {
 	if width == 0 || height == 0 {
 		return nil
 	}
-	tw, _, err := terminal.GetSize(int(os.Stdout.Fd()))
+	tw, _, err := term.GetSize(int(os.Stdout.Fd()))
 	if err == nil && width > tw {
 		width = tw
 	}
