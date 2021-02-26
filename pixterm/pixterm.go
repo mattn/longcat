@@ -12,17 +12,17 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/eliukblau/pixterm/pkg/ansimage"
 	"github.com/lucasb-eyer/go-colorful"
-	"github.com/mattn/pixterm/ansimage"
 	"github.com/tomnomnom/xtermcolor"
 	"golang.org/x/crypto/ssh/terminal"
 )
 
 // Encoder encode image to sixel format
 type Encoder struct {
-	w      io.Writer
-	Width  int
-	Height int
+	w           io.Writer
+	Width       int
+	Height      int
 	is8BitColor bool
 }
 
@@ -50,7 +50,6 @@ func to8BitColor(s string) string {
 	builder.WriteString(s[pos:])
 	return builder.String()
 }
-
 
 func (e *Encoder) Encode(img image.Image) error {
 	width, height := img.Bounds().Dx(), img.Bounds().Dy()

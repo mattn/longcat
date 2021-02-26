@@ -5,8 +5,10 @@ package main
 
 import (
 	"bytes"
+	"embed"
 	"flag"
 	"fmt"
+	"io/fs"
 	"io/ioutil"
 	"runtime"
 	"time"
@@ -17,7 +19,6 @@ import (
 	"image/draw"
 	"image/png"
 	"log"
-	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
@@ -30,8 +31,6 @@ import (
 	"github.com/mattn/longcat/iterm"
 	"github.com/mattn/longcat/kitty"
 	"github.com/mattn/longcat/pixterm"
-	_ "github.com/mattn/longcat/statik"
-	"github.com/rakyll/statik/fs"
 )
 
 const name = "longcat"
@@ -40,6 +39,9 @@ const version = "0.0.1"
 
 var revision = "HEAD"
 
+//go:embed public/themes
+var themes embed.FS
+
 // Theme of longcat
 type Theme struct {
 	Head image.Image
@@ -47,10 +49,10 @@ type Theme struct {
 	Tail image.Image
 }
 
-func loadImage(fs http.FileSystem, n string) (image.Image, error) {
-	f, err := fs.Open(n)
+func loadImage(name string) (image.Image, error) {
+	f, err := themes.Open(name)
 	if err != nil {
-		return nil, fmt.Errorf("theme file does not open: %s", n)
+		return nil, fmt.Errorf("theme file does not open %s: %w", name, err)
 	}
 	defer f.Close()
 	return png.Decode(f)
@@ -93,24 +95,19 @@ func (t *Theme) loadTheme(themeName string) error {
 		return fmt.Errorf("theme does not exist: %s", themeName)
 	}
 
-	fs, err := fs.New()
-	if err != nil {
-		return err
-	}
-
 	imgPath := func(s string) string {
-		return filepath.ToSlash(filepath.Join("/themes", themeName, s))
+		return filepath.ToSlash(filepath.Join("public/themes", themeName, s))
 	}
 
-	t.Head, err = loadImage(fs, imgPath("data01.png"))
+	t.Head, err = loadImage(imgPath("data01.png"))
 	if err != nil {
 		return err
 	}
-	t.Body, err = loadImage(fs, imgPath("data02.png"))
+	t.Body, err = loadImage(imgPath("data02.png"))
 	if err != nil {
 		return err
 	}
-	t.Tail, err = loadImage(fs, imgPath("data03.png"))
+	t.Tail, err = loadImage(imgPath("data03.png"))
 	if err != nil {
 		return err
 	}
@@ -151,19 +148,7 @@ func saveImage(filename string, img image.Image) error {
 }
 
 func getThemeNames() ([]string, error) {
-	fs, err := fs.New()
-	if err != nil {
-		return nil, err
-	}
-
-	f, err := fs.Open("/themes")
-	if err != nil {
-		return nil, err
-	}
-	defer f.Close()
-
-	// List "/themes/*" directory in statik
-	infos, err := f.Readdir(-1)
+	infos, err := fs.ReadDir(themes, "public/themes")
 	if err != nil {
 		return nil, err
 	}
