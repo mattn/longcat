@@ -8,20 +8,17 @@ import (
 	"embed"
 	"flag"
 	"fmt"
-	"io/fs"
-	"io/ioutil"
-	"runtime"
-	"time"
-
-	"golang.org/x/term"
-
 	"image"
 	"image/draw"
 	"image/png"
+	"io/fs"
+	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
+	"time"
 
 	"github.com/disintegration/imaging"
 	"github.com/mattn/go-colorable"
@@ -31,6 +28,7 @@ import (
 	"github.com/mattn/longcat/iterm"
 	"github.com/mattn/longcat/kitty"
 	"github.com/mattn/longcat/pixterm"
+	"golang.org/x/term"
 )
 
 const name = "longcat"
