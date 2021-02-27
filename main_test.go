@@ -6,16 +6,8 @@ import (
 	"testing"
 )
 
-var statikFile = "./statik/statik.go"
 var themeDir = "./public/themes"
 var imageNames = [...]string{"data01.png", "data02.png", "data03.png"}
-
-func TestStatikFile(t *testing.T) {
-	_, err := os.Stat(statikFile)
-	if err != nil {
-		t.Fatal("you need to run `make generate` : ", err)
-	}
-}
 
 func TestThemeImages(t *testing.T) {
 	var err error
