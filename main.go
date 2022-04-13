@@ -25,6 +25,7 @@ import (
 	"github.com/mattn/go-isatty"
 	"github.com/mattn/go-sixel"
 	"github.com/mattn/longcat/ascii"
+	"github.com/mattn/longcat/extraterm"
 	"github.com/mattn/longcat/iterm"
 	"github.com/mattn/longcat/kitty"
 	"github.com/mattn/longcat/pixterm"
@@ -205,6 +206,10 @@ func checkKitty() bool {
 		return true
 	}
 	return strings.HasPrefix(getDA2(), "\x1b[>1;4000;") // \x1b[>1;{major+4000};{minor}c
+}
+
+func checkExtraterm() bool {
+	return os.Getenv("LC_EXTRATERM_COOKIE") != ""
 }
 
 func check8BitColor() bool {
@@ -407,6 +412,8 @@ func main() {
 			enc = kitty.NewEncoder(&buf)
 		} else if checkSixel() {
 			enc = sixel.NewEncoder(&buf)
+		} else if checkExtraterm() {
+			enc = extraterm.NewEncoder(&buf)
 		} else {
 			isPixterm = true
 		}
