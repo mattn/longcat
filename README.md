@@ -13,7 +13,7 @@ $ longcat -n 6
 ## Installation
 
 ```
-$ go get github.com/mattn/longcat
+$ go install github.com/mattn/longcat@latest
 ```
 
 Or run with docker
