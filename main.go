@@ -1,8 +1,5 @@
 package main
 
-//go:generate go get github.com/rakyll/statik
-//go:generate statik
-
 import (
 	"bytes"
 	"embed"
