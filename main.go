@@ -231,10 +231,9 @@ func checkSixel() bool {
 		return true
 	}
 	s, err := term.MakeRaw(1)
-	if err != nil {
-		return false
+	if err == nil {
+		defer term.Restore(1, s)
 	}
-	defer term.Restore(1, s)
 	_, err = os.Stdout.Write([]byte("\x1b[c"))
 	if err != nil {
 		return false
@@ -248,6 +247,7 @@ func checkSixel() bool {
 	if err != nil {
 		return false
 	}
+
 	var supportedTerminals = []string{
 		"\x1b[?62;", // VT240
 		"\x1b[?63;", // wsltty
@@ -259,6 +259,11 @@ func checkSixel() bool {
 		if bytes.HasPrefix(b[:n], []byte(supportedTerminal)) {
 			supported = true
 			break
+		}
+	}
+	if supported == false {
+		if bytes.HasPrefix(b[:n], []byte("\x1b[?1;2;4c")) {
+			supported = true
 		}
 	}
 	if !supported {
