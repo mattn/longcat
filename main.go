@@ -248,6 +248,9 @@ func checkSixel() bool {
 		return false
 	}
 
+	if bytes.HasPrefix(b[:n], []byte("\x1b[?1;2;4c")) {
+		return true
+	}
 	var supportedTerminals = []string{
 		"\x1b[?62;", // VT240
 		"\x1b[?63;", // wsltty
@@ -259,11 +262,6 @@ func checkSixel() bool {
 		if bytes.HasPrefix(b[:n], []byte(supportedTerminal)) {
 			supported = true
 			break
-		}
-	}
-	if supported == false {
-		if bytes.HasPrefix(b[:n], []byte("\x1b[?1;2;4c")) {
-			supported = true
 		}
 	}
 	if !supported {
