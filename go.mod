@@ -11,7 +11,7 @@ require (
 	github.com/mattn/go-sixel v0.0.5
 	github.com/tomnomnom/xtermcolor v0.0.0-20160428124646-b78803f00a7e
 	github.com/zyxar/image2ascii v0.0.0-20231201150218-0baccbec7582
-	golang.org/x/term v0.17.0
+	golang.org/x/term v0.18.0
 )
 
 require (
@@ -19,5 +19,5 @@ require (
 	github.com/nfnt/resize v0.0.0-20180221191011-83c6a9932646 // indirect
 	github.com/soniakeys/quant v1.0.0 // indirect
 	golang.org/x/image v0.15.0 // indirect
-	golang.org/x/sys v0.17.0 // indirect
+	golang.org/x/sys v0.18.0 // indirect
 )
