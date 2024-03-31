@@ -9,7 +9,6 @@ import (
 	"image/draw"
 	"image/png"
 	"io/fs"
-	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
@@ -64,7 +63,7 @@ func loadImageGlob(dir string, glob string) (image.Image, error) {
 		return nil, fmt.Errorf("file does not exist: %s", pattern)
 	}
 
-	data, err := ioutil.ReadFile(matches[0])
+	data, err := os.ReadFile(matches[0])
 	if err != nil {
 		return nil, err
 	}
@@ -140,7 +139,7 @@ func saveImage(filename string, img image.Image) error {
 	if err != nil {
 		return err
 	}
-	return ioutil.WriteFile(filename, buf.Bytes(), 0644)
+	return os.WriteFile(filename, buf.Bytes(), 0644)
 }
 
 func getThemeNames() ([]string, error) {

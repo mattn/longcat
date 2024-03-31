@@ -1,7 +1,6 @@
 package main
 
 import (
-	"io/ioutil"
 	"os"
 	"testing"
 )
@@ -17,7 +16,7 @@ func TestThemeImages(t *testing.T) {
 		t.Fatal("themes file is not found : ", err)
 	}
 
-	themedirs, err := ioutil.ReadDir(themeDir)
+	themedirs, err := os.ReadDir(themeDir)
 	if err != nil {
 		t.Fatal("themes file is not found : ", err)
 	}
@@ -25,7 +24,7 @@ func TestThemeImages(t *testing.T) {
 	for _, themedir := range themedirs {
 		if themedir.IsDir() {
 			t.Log("found theme : ", themedir.Name())
-			files, err := ioutil.ReadDir(themeDir + "/" + themedir.Name())
+			files, err := os.ReadDir(themeDir + "/" + themedir.Name())
 			if err != nil {
 				t.Log("theme image is not found. skipping,,, : ", err)
 				continue
