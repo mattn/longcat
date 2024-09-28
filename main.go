@@ -400,7 +400,7 @@ func main() {
 
 	if !isPixterm {
 		if runtime.GOOS == "windows" && !isatty.IsCygwinTerminal(os.Stdout.Fd()) {
-			if os.Getenv("GO_SIXEL_WINDOWS_USE_SIXEL") == "1" {
+			if os.Getenv("LONGCAT_WINDOWS_USE_SIXEL") == "1" {
 				enc = sixel.NewEncoder(&buf)
 			} else if vtenabled {
 				isPixterm = true
