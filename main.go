@@ -201,6 +201,9 @@ func checkKitty() bool {
 	if os.Getenv("KITTY_WINDOW_ID") != "" {
 		return true
 	}
+	if os.Getenv("TERM_PROGRAM") == "ghostty" {
+		return true
+	}
 	return strings.HasPrefix(getDA2(), "\x1b[>1;4000;") // \x1b[>1;{major+4000};{minor}c
 }
 
