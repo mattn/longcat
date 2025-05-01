@@ -36,24 +36,25 @@ type Encoder struct {
 	// For placeholder mode
 	randSource *rand.Rand
 	isTmux     bool // Flag to indicate if running under tmux
+	// Store actual or default cell dimensions
+	cellWidth  int
+	cellHeight int
 }
 
 // NewEncoder returns a new Kitty encoder.
 func NewEncoder(w io.Writer, mode KittyMode) *Encoder {
 	src := rand.NewSource(time.Now().UnixNano())
 	isTmux := os.Getenv("TMUX") != ""
+	cellW, cellH := getCellSize()
 	return &Encoder{
 		w:          w,
 		Mode:       mode,
 		randSource: rand.New(src),
 		isTmux:     isTmux,
+		cellWidth:  cellW,
+		cellHeight: cellH,
 	}
 }
-
-const (
-	defaultCellWidth  = 8  // Approximate cell width in pixels
-	defaultCellHeight = 16 // Approximate cell height in pixels
-)
 
 // wrapForTmux wraps a given escape sequence for tmux passthrough.
 func (e *Encoder) wrapForTmux(sequence string) string {
@@ -138,9 +139,9 @@ func (e *Encoder) encodeUnicodePlaceholder(b64data string, width, height int) er
 		imgID = e.randSource.Uint32()
 	}
 
-	// 2. Calculate Cell Dimensions (approximate)
-	cols := (width + defaultCellWidth - 1) / defaultCellWidth
-	rows := (height + defaultCellHeight - 1) / defaultCellHeight
+	// 2. Calculate Cell Dimensions using provided or default cell size
+	cols := int(math.Ceil(float64(width) / float64(e.cellWidth)))
+	rows := int(math.Ceil(float64(height) / float64(e.cellHeight)))
 	if cols == 0 {
 		cols = 1
 	}
@@ -168,7 +169,6 @@ func (e *Encoder) encodeUnicodePlaceholder(b64data string, width, height int) er
 		var chunkBuilder strings.Builder
 		if i == 0 {
 			// First chunk: Combine a=T, U=1, and placement parameters (c, r)
-			// Removing q=2 to see if terminal response is necessary for placeholder registration.
 			chunkBuilder.WriteString(fmt.Sprintf(
 				"\033_Ga=T,U=1,q=2,i=%d,c=%d,r=%d,f=100,s=%d,v=%d,m=%d;",
 				imgID, cols, rows, width, height, more))
@@ -207,6 +207,7 @@ func (e *Encoder) encodeUnicodePlaceholder(b64data string, width, height int) er
 			placeholderGrid.WriteString(idMsbDiacritic)
 		}
 		placeholderGrid.WriteString("\033[39m")
+		// Restore newline after every row
 		placeholderGrid.WriteString("\n")
 	}
 

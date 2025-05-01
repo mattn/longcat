@@ -415,7 +415,7 @@ func main() {
 			}
 		} else if checkIterm() {
 			enc = iterm.NewEncoder(&buf)
-		} else if checkKitty() { // Use the new protocol check
+		} else if checkKitty() {
 			kittyMode := kitty.KittyModeNormal
 			if os.Getenv("TMUX") != "" {
 				kittyMode = kitty.KittyModeUnicodePlaceholder
