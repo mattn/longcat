@@ -17,7 +17,7 @@ const (
 
 // getCellSize attempts to query the terminal for cell size in pixels.
 // Uses CSI 16 t: "Report xterm window character cell size in pixels" -> CSI 6 ; height ; width t
-// Returns default values (defaultCellWidth, defaultCellHeight) on error.
+// Returns default values on error.
 func getCellSize() (width, height int) {
 	// Use defaults initially
 	width = defaultCellWidth
@@ -31,13 +31,13 @@ func getCellSize() (width, height int) {
 	// Check if stdin/stdout are terminals
 	if !term.IsTerminal(stdinFd) || !term.IsTerminal(stdoutFd) {
 		log.Printf("Warning: Cannot query cell size: stdin/stdout not a terminal.")
-		return // Return defaults
+		return
 	}
 
 	state, err := term.MakeRaw(stdinFd)
 	if err != nil {
 		log.Printf("Warning: Cannot query cell size: failed to enter raw mode: %v", err)
-		return // Return defaults
+		return
 	}
 	defer term.Restore(stdinFd, state)
 
@@ -45,7 +45,7 @@ func getCellSize() (width, height int) {
 	_, err = os.Stdout.Write([]byte(query))
 	if err != nil {
 		log.Printf("Warning: Cannot query cell size: failed to write query: %v", err)
-		return // Return defaults
+		return
 	}
 
 	// Read response from stdin with timeout
@@ -69,10 +69,10 @@ func getCellSize() (width, height int) {
 		response = resp
 	case err = <-readErrChan:
 		log.Printf("Warning: Cannot query cell size: failed to read response: %v", err)
-		return // Return defaults
+		return
 	case <-time.After(150 * time.Millisecond): // Increased timeout slightly
 		log.Printf("Warning: Cannot query cell size: timeout waiting for response.")
-		return // Return defaults
+		return
 	}
 
 	// Parse response: \033[6;<height>;<width>t
@@ -83,15 +83,12 @@ func getCellSize() (width, height int) {
 		h, e1 := strconv.Atoi(matches[1])
 		w, e2 := strconv.Atoi(matches[2])
 		if e1 == nil && e2 == nil && h > 0 && w > 0 {
-			// Success - update width and height
 			width = w
 			height = h
-			// log.Printf("Detected cell size: %dx%d", width, height) // Optional debug log
 			return
 		}
 	}
 
 	log.Printf("Warning: Cannot query cell size: failed to parse response: %q", response)
-	// Return default values if parsing failed
 	return
 }
