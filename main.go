@@ -6,6 +6,7 @@ import (
 	"flag"
 	"fmt"
 	"image"
+	"image/color"
 	"image/draw"
 	"image/png"
 	"io/fs"
@@ -14,6 +15,7 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
+	"syscall"
 	"time"
 
 	"github.com/disintegration/imaging"
@@ -168,6 +170,77 @@ func printThemeNames() error {
 	return nil
 }
 
+var bgColor = color.RGBA64{0, 0, 0, 0xFFFF}
+
+func detectBackgroundColor() {
+	if runtime.GOOS == "windows" {
+		return
+	}
+
+	f, err := os.OpenFile("/dev/tty", os.O_RDWR, 0)
+	if err != nil {
+		return
+	}
+	defer f.Close()
+
+	fd := int(f.Fd())
+	oldState, err := term.MakeRaw(fd)
+	if err != nil {
+		return
+	}
+	defer term.Restore(fd, oldState)
+	syscall.SetNonblock(fd, true)
+	f.Write([]byte("\x1b]11;?\x1b\\"))
+
+	var bb []byte
+	for {
+		f.SetDeadline(time.Now().Add(100 * time.Millisecond))
+		var b [1]byte
+		n, err := f.Read(b[:])
+		if err != nil {
+			break
+		}
+		if n == 0 || b[0] == '\\' || b[0] == 0x0a {
+			break
+		}
+		bb = append(bb, b[0])
+	}
+	if pos := strings.Index(string(bb), "rgb:"); pos != -1 {
+		bb = bb[pos+4:]
+		pos = strings.Index(string(bb), "\x1b")
+		if pos != -1 {
+			bb = bb[:pos]
+		}
+		var r, g, b uint16
+		n, err := fmt.Sscanf(string(bb), "%x/%x/%x", &r, &g, &b)
+		if err == nil && n == 3 {
+			bgColor = color.RGBA64{r, g, b, 0xFFFF}
+		}
+	}
+}
+
+func fillBackground(img image.Image) image.Image {
+	bounds := img.Bounds()
+	height := ((bounds.Dy() + 5) / 6) * 6
+	tmp := image.NewNRGBA64(image.Rect(0, 0, bounds.Dx(), height))
+	for y := 0; y < bounds.Dy(); y++ {
+		for x := 0; x < bounds.Dx(); x++ {
+			r, g, b, a := img.At(bounds.Min.X+x, bounds.Min.Y+y).RGBA()
+			if a == 0 {
+				tmp.Set(x, y, bgColor)
+			} else {
+				tmp.Set(x, y, color.NRGBA64{uint16(r), uint16(g), uint16(b), 0xFFFF})
+			}
+		}
+	}
+	for y := bounds.Dy(); y < height; y++ {
+		for x := 0; x < bounds.Dx(); x++ {
+			tmp.Set(x, y, bgColor)
+		}
+	}
+	return tmp
+}
+
 func getDA2() string {
 	s, err := term.MakeRaw(1)
 	if err != nil {
@@ -178,6 +251,7 @@ func getDA2() string {
 	if err != nil {
 		return ""
 	}
+	os.Stdout.SetReadDeadline(time.Now().Add(100 * time.Millisecond))
 	defer os.Stdout.SetReadDeadline(time.Time{})
 
 	time.Sleep(10 * time.Millisecond)
@@ -240,6 +314,7 @@ func checkSixel() bool {
 	if err != nil {
 		return false
 	}
+	os.Stdout.SetReadDeadline(time.Now().Add(100 * time.Millisecond))
 	defer os.Stdout.SetReadDeadline(time.Time{})
 
 	time.Sleep(10 * time.Millisecond)
@@ -254,6 +329,7 @@ func checkSixel() bool {
 		return true
 	}
 	var supportedTerminals = []string{
+		"\x1b[?61;", // Windows Terminal
 		"\x1b[?62;", // VT240
 		"\x1b[?63;", // wsltty
 		"\x1b[?64;", // mintty
@@ -401,10 +477,12 @@ func main() {
 		Encode(image.Image) error
 	}
 
+	isSixel := false
 	if !isPixterm {
 		if runtime.GOOS == "windows" && !isatty.IsCygwinTerminal(os.Stdout.Fd()) {
 			if os.Getenv("LONGCAT_WINDOWS_USE_SIXEL") == "1" {
 				enc = sixel.NewEncoder(&buf)
+				isSixel = true
 			} else if vtenabled {
 				isPixterm = true
 			} else {
@@ -416,11 +494,17 @@ func main() {
 			enc = kitty.NewEncoder(&buf)
 		} else if checkSixel() {
 			enc = sixel.NewEncoder(&buf)
+			isSixel = true
 		} else if checkExtraterm() {
 			enc = extraterm.NewEncoder(&buf)
 		} else {
 			isPixterm = true
 		}
+	}
+
+	if isSixel {
+		detectBackgroundColor()
+		output = fillBackground(output)
 	}
 
 	if isPixterm {
