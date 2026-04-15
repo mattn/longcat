@@ -210,13 +210,16 @@ func checkKitty() bool {
 	if os.Getenv("TERM_PROGRAM") == "ghostty" {
 		return true
 	}
-	return strings.HasPrefix(getDA2(), "\x1b[>1;4000;") // \x1b[>1;{major+4000};{minor}c
+	// \x1b[>1;{major+4000};{minor}c
+	if strings.HasPrefix(getDA2(), "\x1b[>1;4000;") {
+		return true
+	}
+	return kitty.CheckKittyGraphicsProtocol()
 }
 
 func checkExtraterm() bool {
 	return os.Getenv("LC_EXTRATERM_COOKIE") != ""
 }
-
 func check8BitColor() bool {
 	if os.Getenv("TERM_PROGRAM") == "Apple_Terminal" { // Terminal.app
 		return true
@@ -401,7 +404,11 @@ func main() {
 		if checkIterm() {
 			enc = iterm.NewEncoder(&buf)
 		} else if checkKitty() {
-			enc = kitty.NewEncoder(&buf)
+			kittyMode := kitty.KittyModeNormal
+			if os.Getenv("TMUX") != "" {
+				kittyMode = kitty.KittyModeUnicodePlaceholder
+			}
+			enc = kitty.NewEncoder(&buf, kittyMode)
 		} else if checkSixel() {
 			enc = sixel.NewEncoder(&buf)
 			isSixel = true
