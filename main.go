@@ -26,7 +26,6 @@ import (
 	"github.com/mattn/longcat/iterm"
 	"github.com/mattn/longcat/kitty"
 	"github.com/mattn/longcat/pixterm"
-	"golang.org/x/term"
 )
 
 const name = "longcat"
@@ -194,26 +193,7 @@ func fillBackground(img image.Image) image.Image {
 }
 
 func getDA2() string {
-	s, err := term.MakeRaw(1)
-	if err != nil {
-		return ""
-	}
-	defer term.Restore(1, s)
-	_, err = os.Stdout.Write([]byte("\x1b[>c")) // DA2 host request
-	if err != nil {
-		return ""
-	}
-	os.Stdout.SetReadDeadline(time.Now().Add(100 * time.Millisecond))
-	defer os.Stdout.SetReadDeadline(time.Time{})
-
-	time.Sleep(10 * time.Millisecond)
-
-	var b [100]byte
-	n, err := os.Stdout.Read(b[:])
-	if err != nil {
-		return ""
-	}
-	return string(b[:n])
+	return string(queryTerminal("\x1b[>c", 100*time.Millisecond))
 }
 
 func checkIterm() bool {
@@ -258,22 +238,9 @@ func checkSixel() bool {
 	if isatty.IsCygwinTerminal(os.Stdout.Fd()) {
 		return true
 	}
-	s, err := term.MakeRaw(1)
-	if err == nil {
-		defer term.Restore(1, s)
-	}
-	_, err = os.Stdout.Write([]byte("\x1b[c"))
-	if err != nil {
-		return false
-	}
-	os.Stdout.SetReadDeadline(time.Now().Add(100 * time.Millisecond))
-	defer os.Stdout.SetReadDeadline(time.Time{})
-
-	time.Sleep(10 * time.Millisecond)
-
-	var b [100]byte
-	n, err := os.Stdout.Read(b[:])
-	if err != nil {
+	b := queryTerminal("\x1b[c", 100*time.Millisecond)
+	n := len(b)
+	if n == 0 {
 		return false
 	}
 
@@ -431,16 +398,7 @@ func main() {
 
 	isSixel := false
 	if !isPixterm {
-		if runtime.GOOS == "windows" && !isatty.IsCygwinTerminal(os.Stdout.Fd()) {
-			if os.Getenv("LONGCAT_WINDOWS_USE_SIXEL") == "1" {
-				enc = sixel.NewEncoder(&buf)
-				isSixel = true
-			} else if vtenabled {
-				isPixterm = true
-			} else {
-				asciiMode = true
-			}
-		} else if checkIterm() {
+		if checkIterm() {
 			enc = iterm.NewEncoder(&buf)
 		} else if checkKitty() {
 			enc = kitty.NewEncoder(&buf)
