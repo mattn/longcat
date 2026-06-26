@@ -50,13 +50,15 @@ func (e *Encoder) Encode(img image.Image) error {
 		return err
 	}
 
-	fmt.Fprint(e.w, "\033]1337;")
-	fmt.Fprintf(e.w, "File=inline=1")
-	fmt.Fprintf(e.w, ";width=%dpx", width)
-	fmt.Fprintf(e.w, ";height=%dpx", height)
-	fmt.Fprint(e.w, ":")
-	fmt.Fprintf(e.w, "%s", base64.StdEncoding.EncodeToString(buf.Bytes()))
-	fmt.Fprint(e.w, "\a\n")
+	var out bytes.Buffer
+	fmt.Fprint(&out, "\033]1337;")
+	fmt.Fprintf(&out, "File=inline=1")
+	fmt.Fprintf(&out, ";width=%dpx", width)
+	fmt.Fprintf(&out, ";height=%dpx", height)
+	fmt.Fprint(&out, ":")
+	fmt.Fprintf(&out, "%s", base64.StdEncoding.EncodeToString(buf.Bytes()))
+	fmt.Fprint(&out, "\a\n")
 
-	return nil
+	_, err := e.w.Write(out.Bytes())
+	return err
 }
