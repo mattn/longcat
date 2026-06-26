@@ -62,6 +62,6 @@ func (e *Encoder) Encode(img image.Image) error {
 		previous_hash = hash
 	}
 	builder.WriteString(fmt.Sprintf("E::%x\n\000", sha256.Sum256(previous_hash)))
-	e.w.Write([]byte(builder.String()))
-	return nil
+	_, err := e.w.Write([]byte(builder.String()))
+	return err
 }

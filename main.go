@@ -6,8 +6,10 @@ import (
 	"flag"
 	"fmt"
 	"image"
+	"image/color"
 	"image/draw"
 	"image/png"
+	"io"
 	"io/fs"
 	"log"
 	"os"
@@ -25,12 +27,11 @@ import (
 	"github.com/mattn/longcat/iterm"
 	"github.com/mattn/longcat/kitty"
 	"github.com/mattn/longcat/pixterm"
-	"golang.org/x/term"
 )
 
 const name = "longcat"
 
-const version = "0.0.11"
+const version = "0.0.18"
 
 var revision = "HEAD"
 
@@ -168,26 +169,56 @@ func printThemeNames() error {
 	return nil
 }
 
+func writeOutput(w io.Writer, data []byte) error {
+	n, err := w.Write(data)
+	if err != nil {
+		return err
+	}
+	if n != len(data) {
+		return io.ErrShortWrite
+	}
+	return nil
+}
+
+func validateOutputOptions(nlong, ncolumns int, rinterval float64) error {
+	if nlong < 0 {
+		return fmt.Errorf("n must be greater than or equal to 0: %d", nlong)
+	}
+	if ncolumns < 1 {
+		return fmt.Errorf("l must be greater than or equal to 1: %d", ncolumns)
+	}
+	if rinterval <= 0 {
+		return fmt.Errorf("i must be greater than 0: %g", rinterval)
+	}
+	return nil
+}
+
+var bgColor = color.RGBA64{0, 0, 0, 0xFFFF}
+
+func fillBackground(img image.Image) image.Image {
+	bounds := img.Bounds()
+	height := ((bounds.Dy() + 5) / 6) * 6
+	tmp := image.NewNRGBA64(image.Rect(0, 0, bounds.Dx(), height))
+	for y := 0; y < bounds.Dy(); y++ {
+		for x := 0; x < bounds.Dx(); x++ {
+			r, g, b, a := img.At(bounds.Min.X+x, bounds.Min.Y+y).RGBA()
+			if a == 0 {
+				tmp.Set(x, y, bgColor)
+			} else {
+				tmp.Set(x, y, color.NRGBA64{uint16(r), uint16(g), uint16(b), 0xFFFF})
+			}
+		}
+	}
+	for y := bounds.Dy(); y < height; y++ {
+		for x := 0; x < bounds.Dx(); x++ {
+			tmp.Set(x, y, bgColor)
+		}
+	}
+	return tmp
+}
+
 func getDA2() string {
-	s, err := term.MakeRaw(1)
-	if err != nil {
-		return ""
-	}
-	defer term.Restore(1, s)
-	_, err = os.Stdout.Write([]byte("\x1b[>c")) // DA2 host request
-	if err != nil {
-		return ""
-	}
-	defer os.Stdout.SetReadDeadline(time.Time{})
-
-	time.Sleep(10 * time.Millisecond)
-
-	var b [100]byte
-	n, err := os.Stdout.Read(b[:])
-	if err != nil {
-		return ""
-	}
-	return string(b[:n])
+	return string(queryTerminal("\x1b[>c", 100*time.Millisecond))
 }
 
 func checkIterm() bool {
@@ -243,21 +274,9 @@ func checkSixel() bool {
 	if isatty.IsCygwinTerminal(os.Stdout.Fd()) {
 		return true
 	}
-	s, err := term.MakeRaw(1)
-	if err == nil {
-		defer term.Restore(1, s)
-	}
-	_, err = os.Stdout.Write([]byte("\x1b[c"))
-	if err != nil {
-		return false
-	}
-	defer os.Stdout.SetReadDeadline(time.Time{})
-
-	time.Sleep(10 * time.Millisecond)
-
-	var b [100]byte
-	n, err := os.Stdout.Read(b[:])
-	if err != nil {
+	b := queryTerminal("\x1b[c", 100*time.Millisecond)
+	n := len(b)
+	if n == 0 {
 		return false
 	}
 
@@ -265,6 +284,7 @@ func checkSixel() bool {
 		return true
 	}
 	var supportedTerminals = []string{
+		"\x1b[?61;", // Windows Terminal
 		"\x1b[?62;", // VT240
 		"\x1b[?63;", // wsltty
 		"\x1b[?64;", // mintty
@@ -320,9 +340,9 @@ func main() {
 	flag.IntVar(&nlong, "n", 1, "how long cat")
 	flag.IntVar(&ncolumns, "l", 1, "number of columns")
 	flag.Float64Var(&rinterval, "i", 1.0, "rate of intervals")
-	flag.BoolVar(&flipH, "r", false, "flip holizontal")
+	flag.BoolVar(&flipH, "r", false, "flip horizontal")
 	flag.BoolVar(&flipV, "R", false, "flip vertical")
-	flag.BoolVar(&isHorizontal, "H", false, "holizontal-mode")
+	flag.BoolVar(&isHorizontal, "H", false, "horizontal-mode")
 	flag.StringVar(&filename, "o", "", "output image file")
 	flag.StringVar(&imageDir, "d", "", "directory of images(dir/*{1,2,3}.png)")
 	flag.StringVar(&themeName, "t", "longcat", "name of theme")
@@ -353,6 +373,10 @@ func main() {
 	if darkMode {
 		themeName = "tacgnol"
 		imageDir = "" // Forcibly apply the above theme
+	}
+
+	if err := validateOutputOptions(nlong, ncolumns, rinterval); err != nil {
+		log.Fatal(err)
 	}
 
 	theme := Theme{}
@@ -418,16 +442,9 @@ func main() {
 		Encode(image.Image) error
 	}
 
+	isSixel := false
 	if !isPixterm {
-		if runtime.GOOS == "windows" && !isatty.IsCygwinTerminal(os.Stdout.Fd()) {
-			if os.Getenv("LONGCAT_WINDOWS_USE_SIXEL") == "1" {
-				enc = sixel.NewEncoder(&buf)
-			} else if vtenabled {
-				isPixterm = true
-			} else {
-				asciiMode = true
-			}
-		} else if checkIterm() {
+		if checkIterm() {
 			enc = iterm.NewEncoder(&buf)
 		} else if checkKitty() {
 			kittyMode := kitty.KittyModeNormal
@@ -437,11 +454,17 @@ func main() {
 			enc = kitty.NewEncoder(&buf, kittyMode)
 		} else if checkSixel() {
 			enc = sixel.NewEncoder(&buf)
+			isSixel = true
 		} else if checkExtraterm() {
 			enc = extraterm.NewEncoder(&buf)
 		} else {
 			isPixterm = true
 		}
+	}
+
+	if isSixel {
+		detectBackgroundColor()
+		output = fillBackground(output)
 	}
 
 	if isPixterm {
@@ -457,10 +480,14 @@ func main() {
 		log.Fatal(err)
 	}
 
+	var err error
 	if runtime.GOOS == "windows" {
-		colorable.NewColorableStdout().Write(buf.Bytes())
+		err = writeOutput(colorable.NewColorableStdout(), buf.Bytes())
 	} else {
-		os.Stdout.Write(buf.Bytes())
+		err = writeOutput(os.Stdout, buf.Bytes())
+	}
+	if err != nil {
+		log.Fatal(err)
 	}
 	os.Stdout.Sync()
 }

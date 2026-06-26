@@ -85,6 +85,6 @@ func (e *Encoder) Encode(img image.Image) error {
 	if e.is8BitColor {
 		s = to8BitColor(s)
 	}
-	e.w.Write([]byte(s))
-	return nil
+	_, err = e.w.Write([]byte(s))
+	return err
 }

@@ -120,8 +120,8 @@ func (e *Encoder) encodeNormal(b64data string, width, height int) error {
 			builder.WriteString(fmt.Sprintf("m=0;%s\033\\\n", b64data[i*chunk_size:]))
 		}
 	}
-	e.w.Write([]byte(builder.String()))
-	return nil
+	_, err := e.w.Write([]byte(builder.String()))
+	return err
 }
 
 // encodeUnicodePlaceholder sends the image using the Unicode placeholder method.
