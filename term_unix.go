@@ -10,21 +10,27 @@ import (
 )
 
 func queryTerminal(query string, timeout time.Duration) []byte {
-	s, err := term.MakeRaw(1)
-	if err == nil {
-		defer term.Restore(1, s)
-	}
-	_, err = os.Stdout.Write([]byte(query))
+	f, err := os.OpenFile("/dev/tty", os.O_RDWR, 0)
 	if err != nil {
 		return nil
 	}
-	os.Stdout.SetReadDeadline(time.Now().Add(timeout))
-	defer os.Stdout.SetReadDeadline(time.Time{})
+	defer f.Close()
+
+	s, err := term.MakeRaw(int(f.Fd()))
+	if err == nil {
+		defer term.Restore(int(f.Fd()), s)
+	}
+	_, err = f.Write([]byte(query))
+	if err != nil {
+		return nil
+	}
+	f.SetReadDeadline(time.Now().Add(timeout))
+	defer f.SetReadDeadline(time.Time{})
 
 	time.Sleep(10 * time.Millisecond)
 
 	var b [100]byte
-	n, err := os.Stdout.Read(b[:])
+	n, err := f.Read(b[:])
 	if err != nil {
 		return nil
 	}
