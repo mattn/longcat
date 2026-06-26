@@ -235,7 +235,18 @@ func checkKitty() bool {
 	if os.Getenv("TERM_PROGRAM") == "ghostty" {
 		return true
 	}
-	return strings.HasPrefix(getDA2(), "\x1b[>1;4000;") // \x1b[>1;{major+4000};{minor}c
+	// \x1b[>1;{major+4000};{minor}c
+	if strings.HasPrefix(getDA2(), "\x1b[>1;4000;") {
+		return true
+	}
+	// Inside tmux, DA2 reports tmux itself rather than the outer terminal, so
+	// fall back to querying the graphics protocol directly via passthrough.
+	// Restricting this probe to tmux avoids sending graphics queries to
+	// terminals (e.g. Terminal.app) that would otherwise mishandle them.
+	if os.Getenv("TMUX") != "" {
+		return kitty.CheckKittyGraphicsProtocol()
+	}
+	return false
 }
 
 func checkExtraterm() bool {
@@ -301,6 +312,12 @@ func checkSixel() bool {
 		}
 	}
 	return false
+}
+
+func init() {
+	// Let the kitty package reuse the shared, robust /dev/tty based terminal
+	// query implementation instead of doing its own terminal I/O.
+	kitty.QueryTerminal = queryTerminal
 }
 
 func main() {
@@ -430,7 +447,11 @@ func main() {
 		if checkIterm() {
 			enc = iterm.NewEncoder(&buf)
 		} else if checkKitty() {
-			enc = kitty.NewEncoder(&buf)
+			kittyMode := kitty.KittyModeNormal
+			if os.Getenv("TMUX") != "" {
+				kittyMode = kitty.KittyModeUnicodePlaceholder
+			}
+			enc = kitty.NewEncoder(&buf, kittyMode)
 		} else if checkSixel() {
 			enc = sixel.NewEncoder(&buf)
 			isSixel = true

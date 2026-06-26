@@ -13,7 +13,7 @@ func (errWriter) Write([]byte) (int, error) {
 }
 
 func TestEncodeReturnsWriteError(t *testing.T) {
-	enc := NewEncoder(errWriter{})
+	enc := NewEncoder(errWriter{}, KittyModeNormal)
 	img := image.NewRGBA(image.Rect(0, 0, 8, 8))
 	if err := enc.Encode(img); err == nil {
 		t.Fatal("Encode returned nil for a writer error")
