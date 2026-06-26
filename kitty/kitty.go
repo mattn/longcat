@@ -67,6 +67,6 @@ func (e *Encoder) Encode(img image.Image) error {
 			builder.WriteString(fmt.Sprintf("m=0;%s\033\\\n", b64data[i*chunk_size:]))
 		}
 	}
-	e.w.Write([]byte(builder.String()))
-	return nil
+	_, err := e.w.Write([]byte(builder.String()))
+	return err
 }
