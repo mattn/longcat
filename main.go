@@ -208,12 +208,20 @@ func checkKitty() bool {
 	if strings.HasPrefix(getDA2(), "\x1b[>1;4000;") {
 		return true
 	}
-	return kitty.CheckKittyGraphicsProtocol()
+	// Inside tmux, DA2 reports tmux itself rather than the outer terminal, so
+	// fall back to querying the graphics protocol directly via passthrough.
+	// Restricting this probe to tmux avoids sending graphics queries to
+	// terminals (e.g. Terminal.app) that would otherwise mishandle them.
+	if os.Getenv("TMUX") != "" {
+		return kitty.CheckKittyGraphicsProtocol()
+	}
+	return false
 }
 
 func checkExtraterm() bool {
 	return os.Getenv("LC_EXTRATERM_COOKIE") != ""
 }
+
 func check8BitColor() bool {
 	if os.Getenv("TERM_PROGRAM") == "Apple_Terminal" { // Terminal.app
 		return true
@@ -284,6 +292,12 @@ func checkSixel() bool {
 		}
 	}
 	return false
+}
+
+func init() {
+	// Let the kitty package reuse the shared, robust /dev/tty based terminal
+	// query implementation instead of doing its own terminal I/O.
+	kitty.QueryTerminal = queryTerminal
 }
 
 func main() {

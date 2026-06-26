@@ -43,17 +43,19 @@ type Encoder struct {
 
 // NewEncoder returns a new Kitty encoder.
 func NewEncoder(w io.Writer, mode KittyMode) *Encoder {
-	src := rand.NewSource(time.Now().UnixNano())
-	isTmux := os.Getenv("TMUX") != ""
-	cellW, cellH := getCellSize()
-	return &Encoder{
+	e := &Encoder{
 		w:          w,
 		Mode:       mode,
-		randSource: rand.New(src),
-		isTmux:     isTmux,
-		cellWidth:  cellW,
-		cellHeight: cellH,
+		randSource: rand.New(rand.NewSource(time.Now().UnixNano())),
+		isTmux:     os.Getenv("TMUX") != "",
+		cellWidth:  defaultCellWidth,
+		cellHeight: defaultCellHeight,
 	}
+	// Cell size is only needed to lay out the Unicode placeholder grid.
+	if mode == KittyModeUnicodePlaceholder {
+		e.cellWidth, e.cellHeight = getCellSize()
+	}
+	return e
 }
 
 // wrapForTmux wraps a given escape sequence for tmux passthrough.
@@ -61,16 +63,7 @@ func (e *Encoder) wrapForTmux(sequence string) string {
 	if !e.isTmux {
 		return sequence
 	}
-	// Escape internal ESC characters
-	escapedSequence := strings.ReplaceAll(sequence, "\033", "\033\033")
-	// Wrap in tmux DCS sequence
-	return fmt.Sprintf("\033Ptmux;%s\033\\", escapedSequence)
-}
-
-// writeSequence writes the sequence, wrapping for tmux if necessary.
-func (e *Encoder) writeSequence(sequence string) (int, error) {
-	wrappedSequence := e.wrapForTmux(sequence)
-	return e.w.Write([]byte(wrappedSequence))
+	return tmuxPassthrough(sequence)
 }
 
 // Encode encodes image to Kitty graphics protocol escape sequences.
