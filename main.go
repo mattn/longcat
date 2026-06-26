@@ -9,6 +9,7 @@ import (
 	"image/color"
 	"image/draw"
 	"image/png"
+	"io"
 	"io/fs"
 	"log"
 	"os"
@@ -164,6 +165,17 @@ func printThemeNames() error {
 
 	for _, v := range names {
 		fmt.Println(v)
+	}
+	return nil
+}
+
+func writeOutput(w io.Writer, data []byte) error {
+	n, err := w.Write(data)
+	if err != nil {
+		return err
+	}
+	if n != len(data) {
+		return io.ErrShortWrite
 	}
 	return nil
 }
@@ -430,10 +442,14 @@ func main() {
 		log.Fatal(err)
 	}
 
+	var err error
 	if runtime.GOOS == "windows" {
-		colorable.NewColorableStdout().Write(buf.Bytes())
+		err = writeOutput(colorable.NewColorableStdout(), buf.Bytes())
 	} else {
-		os.Stdout.Write(buf.Bytes())
+		err = writeOutput(os.Stdout, buf.Bytes())
+	}
+	if err != nil {
+		log.Fatal(err)
 	}
 	os.Stdout.Sync()
 }

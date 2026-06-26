@@ -1,6 +1,8 @@
 package main
 
 import (
+	"errors"
+	"io"
 	"os"
 	"testing"
 )
@@ -46,5 +48,29 @@ func TestThemeImages(t *testing.T) {
 			}
 
 		}
+	}
+}
+
+type shortWriter struct{}
+
+func (shortWriter) Write(p []byte) (int, error) {
+	return len(p) - 1, nil
+}
+
+type failWriter struct{}
+
+func (failWriter) Write([]byte) (int, error) {
+	return 0, errors.New("write failed")
+}
+
+func TestWriteOutput(t *testing.T) {
+	if err := writeOutput(io.Discard, []byte("longcat")); err != nil {
+		t.Fatalf("writeOutput returned unexpected error: %v", err)
+	}
+	if err := writeOutput(failWriter{}, []byte("longcat")); err == nil {
+		t.Fatal("writeOutput returned nil for a writer error")
+	}
+	if err := writeOutput(shortWriter{}, []byte("longcat")); !errors.Is(err, io.ErrShortWrite) {
+		t.Fatalf("writeOutput returned %v, want %v", err, io.ErrShortWrite)
 	}
 }
