@@ -180,6 +180,19 @@ func writeOutput(w io.Writer, data []byte) error {
 	return nil
 }
 
+func validateOutputOptions(nlong, ncolumns int, rinterval float64) error {
+	if nlong < 0 {
+		return fmt.Errorf("n must be greater than or equal to 0: %d", nlong)
+	}
+	if ncolumns < 1 {
+		return fmt.Errorf("l must be greater than or equal to 1: %d", ncolumns)
+	}
+	if rinterval <= 0 {
+		return fmt.Errorf("i must be greater than 0: %g", rinterval)
+	}
+	return nil
+}
+
 var bgColor = color.RGBA64{0, 0, 0, 0xFFFF}
 
 func fillBackground(img image.Image) image.Image {
@@ -343,6 +356,10 @@ func main() {
 	if darkMode {
 		themeName = "tacgnol"
 		imageDir = "" // Forcibly apply the above theme
+	}
+
+	if err := validateOutputOptions(nlong, ncolumns, rinterval); err != nil {
+		log.Fatal(err)
 	}
 
 	theme := Theme{}

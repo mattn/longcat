@@ -74,3 +74,28 @@ func TestWriteOutput(t *testing.T) {
 		t.Fatalf("writeOutput returned %v, want %v", err, io.ErrShortWrite)
 	}
 }
+
+func TestValidateOutputOptions(t *testing.T) {
+	tests := []struct {
+		name      string
+		nlong     int
+		ncolumns  int
+		rinterval float64
+		wantErr   bool
+	}{
+		{name: "valid", nlong: 1, ncolumns: 1, rinterval: 1},
+		{name: "zero length", nlong: 0, ncolumns: 1, rinterval: 1},
+		{name: "negative length", nlong: -1, ncolumns: 1, rinterval: 1, wantErr: true},
+		{name: "zero columns", nlong: 1, ncolumns: 0, rinterval: 1, wantErr: true},
+		{name: "zero interval", nlong: 1, ncolumns: 1, rinterval: 0, wantErr: true},
+		{name: "negative interval", nlong: 1, ncolumns: 1, rinterval: -1, wantErr: true},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := validateOutputOptions(tt.nlong, tt.ncolumns, tt.rinterval)
+			if (err != nil) != tt.wantErr {
+				t.Fatalf("validateOutputOptions() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
