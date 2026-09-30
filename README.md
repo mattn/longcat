@@ -19,7 +19,7 @@ $ go install github.com/mattn/longcat@latest
 Or run with docker
 
 ```
-$ docker run ghcr.io/mattn/longcat
+$ docker run -it --rm ghcr.io/mattn/longcat
 ```
 
 ## License
