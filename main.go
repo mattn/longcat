@@ -432,7 +432,9 @@ func main() {
 		} else if checkKitty() {
 			enc = kitty.NewEncoder(&buf)
 		} else if checkSixel() {
-			enc = sixel.NewEncoder(&buf)
+			senc := sixel.NewEncoder(&buf)
+			senc.Transparent = true
+			enc = senc
 			isSixel = true
 		} else if checkExtraterm() {
 			enc = extraterm.NewEncoder(&buf)
