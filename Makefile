@@ -1,4 +1,5 @@
 BIN := longcat
+EXE := $(shell go env GOEXE)
 VERSION := $$(make -s show-version)
 CURRENT_REVISION := $(shell git rev-parse --short HEAD)
 BUILD_LDFLAGS := "-s -w -X main.revision=$(CURRENT_REVISION)"
@@ -10,7 +11,7 @@ all: clean build
 
 .PHONY: build
 build:
-	go build -ldflags=$(BUILD_LDFLAGS) -o $(BIN) .
+	go build -ldflags=$(BUILD_LDFLAGS) -o $(BIN)$(EXE) .
 
 .PHONY: install
 install:
@@ -36,7 +37,7 @@ test: build
 
 .PHONY: clean
 clean:
-	rm -rf $(BIN) goxz
+	rm -rf $(BIN)$(EXE) goxz
 	go clean
 
 .PHONY: bump
